@@ -4,7 +4,11 @@
  */
 package co.unicauca.presentation;
 
+import co.unicauca.solid.access.IUserRepository;
+import co.unicauca.solid.domain.User;
+import co.unicauca.solid.service.UserService;
 import java.awt.BorderLayout;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
 /**
@@ -13,12 +17,15 @@ import javax.swing.JPanel;
  */
 public class GUIRegister extends javax.swing.JPanel {
     private JPanel content;
+    private static UserService userService;
+    IUserRepository userRepository;
     /**
      * Creates new form GUIRegister
      */
-    public GUIRegister(JPanel content) {
+    public GUIRegister(JPanel content,IUserRepository userRepository) {
         initComponents();
         this.content = content;
+        this.userRepository=userRepository;
     }
 
     /**
@@ -49,6 +56,8 @@ public class GUIRegister extends javax.swing.JPanel {
         emailText = new javax.swing.JTextField();
         jButton1 = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
+        jLabel8 = new javax.swing.JLabel();
+        passwRegText = new javax.swing.JTextField();
 
         setBackground(new java.awt.Color(255, 255, 255));
         setPreferredSize(new java.awt.Dimension(500, 600));
@@ -116,6 +125,14 @@ public class GUIRegister extends javax.swing.JPanel {
             }
         });
 
+        jLabel8.setText("CONTRASEÑA");
+
+        passwRegText.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                passwRegTextActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -123,27 +140,32 @@ public class GUIRegister extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(55, 55, 55)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel8)
                     .addComponent(jButton2)
                     .addComponent(jButton1)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(jSeparator1)
-                        .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel6)
-                        .addComponent(jLabel5)
-                        .addComponent(jLabel4)
-                        .addComponent(jLabel3)
-                        .addComponent(jLabel2)
-                        .addComponent(jLabel1)
-                        .addComponent(jLabel7)
-                        .addComponent(jSeparator2)
-                        .addComponent(jSeparator3)
-                        .addComponent(jSeparator4)
-                        .addComponent(nameText)
-                        .addComponent(lastNameText)
-                        .addComponent(celText)
-                        .addComponent(emailText)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jSeparator1)
+                            .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel6)
+                            .addComponent(jLabel5)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel1)
+                            .addComponent(jSeparator2)
+                            .addComponent(jSeparator3)
+                            .addComponent(jSeparator4)
+                            .addComponent(nameText)
+                            .addComponent(lastNameText)
+                            .addComponent(celText)
+                            .addComponent(emailText))
+                        .addGap(42, 42, 42)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel7)))
+                    .addComponent(passwRegText, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(171, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -169,24 +191,28 @@ public class GUIRegister extends javax.swing.JPanel {
                 .addGap(2, 2, 2)
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jLabel5)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel5)
+                    .addComponent(jLabel7))
                 .addGap(9, 9, 9)
-                .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel6)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(emailText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(2, 2, 2)
                 .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(8, 8, 8)
-                .addComponent(jLabel7)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(44, 44, 44)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel8)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(passwRegText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(28, 28, 28)
                 .addComponent(jButton1)
                 .addGap(18, 18, 18)
                 .addComponent(jButton2)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap(82, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -195,7 +221,7 @@ public class GUIRegister extends javax.swing.JPanel {
     }//GEN-LAST:event_nameTextActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        GUILogin login = new GUILogin(content);
+        GUILogin login = new GUILogin(content,userRepository);
         login.setSize(490, 560);
         login.setLocation(10,3);
         content.removeAll();
@@ -213,11 +239,31 @@ public class GUIRegister extends javax.swing.JPanel {
     }//GEN-LAST:event_emailTextActionPerformed
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-    javax.swing.JOptionPane.showMessageDialog(
+        javax.swing.JOptionPane.showMessageDialog(
             this,
-            "intento prueba datos: \nUsuario: "+nameText.getText()+"\nApellido: "+ lastNameText.getText()+"\nCelular: "+celText.getText()+"\nPrograma: "+programBox.getSelectedItem()+"\nEmail: "+emailText.getText()+ "\nUsuario: "+userTypeBox.getSelectedItem(), 
+            "intento prueba datos: \nUsuario: "+nameText.getText()+"\nApellido: "+ lastNameText.getText()+"\nCelular: "+celText.getText()+"\nPrograma: "+programBox.getSelectedItem()+"Email: "+emailText.getText()+"\nUsuario"+userTypeBox.getSelectedItem(), 
             "LOGIN",javax.swing.JOptionPane.INFORMATION_MESSAGE); 
+            User newUser = new User(emailText.getText(),passwRegText.getText(),nameText.getText(),lastNameText.getText(),celText.getText(),(String)programBox.getSelectedItem(),(String)userTypeBox.getSelectedItem());
+     
+            userService = new UserService(userRepository);
+            if (userService.registerUser(newUser)) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Usuario registrado exitosamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    System.out.println("usuarios registrados");
+                    for (User p : userService.getAllUsers()) {
+                    System.out.println(p);
+                    }
+                    
+            } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "Error al registrar usuario. Verifique que el email sea institucional y la contraseña cumpla los requisitos.", 
+                        "Error", JOptionPane.ERROR_MESSAGE);
+            }
     }//GEN-LAST:event_jButton1MouseClicked
+
+    private void passwRegTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passwRegTextActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_passwRegTextActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -232,12 +278,14 @@ public class GUIRegister extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JLabel jLabel8;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JTextField lastNameText;
     private javax.swing.JTextField nameText;
+    private javax.swing.JTextField passwRegText;
     private javax.swing.JComboBox<String> programBox;
     private javax.swing.JComboBox<String> userTypeBox;
     // End of variables declaration//GEN-END:variables

@@ -4,6 +4,8 @@
  */
 package co.unicauca.presentation;
 
+import co.unicauca.solid.access.Factory;
+import co.unicauca.solid.access.IUserRepository;
 import java.awt.BorderLayout;
 import javax.swing.JPasswordField;
 import javax.swing.JTextField;
@@ -15,13 +17,14 @@ import java.awt.Color;
  */
 public class GUIDashboard extends javax.swing.JFrame {
     int xMouse, yMouse;
+    static IUserRepository userRepository = Factory.getInstance().getUserRepository("default");
 
     /**
      * Creates new form LoginFrame
      */
     public GUIDashboard() {
         initComponents();
-        GUILogin login = new GUILogin(content);
+        GUILogin login = new GUILogin(content,userRepository);
         login.setSize(490, 560);
         login.setLocation(10,3);
         content.removeAll();

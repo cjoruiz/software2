@@ -3,6 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package co.unicauca.presentation;
+import co.unicauca.solid.access.IUserRepository;
+import co.unicauca.solid.domain.User;
+import co.unicauca.solid.service.UserService;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.JPanel;
@@ -13,12 +16,16 @@ import javax.swing.JPanel;
 public class GUILogin extends javax.swing.JPanel {
     int xMouse, yMouse;
     private JPanel content;
+    IUserRepository userRepository;
+    private static UserService userService;
+ 
     /**
      * Creates new form Register
      */
-    public GUILogin(JPanel content) {
+    public GUILogin(JPanel content,IUserRepository userRepository) {
         initComponents();
         this.content = content;
+        this.userRepository=userRepository;
     }
 
     /**
@@ -180,7 +187,38 @@ public class GUILogin extends javax.swing.JPanel {
     }//GEN-LAST:event_registerButtonActionPerformed
 
     private void loginButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginButtonMouseClicked
-        javax.swing.JOptionPane.showMessageDialog(this,"intento prueba datos: \nUsuario: "+userText.getText()+ "\ncontraseña: "+ String.valueOf(jPasswordField1.getPassword()), "LOGIN",javax.swing.JOptionPane.INFORMATION_MESSAGE);
+        userService = new UserService(userRepository);
+        javax.swing.JOptionPane.showMessageDialog(this, "intento prueba datos: \nUsuario: " + userText.getText() + "\ncontraseña: " + String.valueOf(jPasswordField1.getPassword()), "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+        String email = userText.getText();
+        String password = String.valueOf(jPasswordField1.getPassword());
+        System.out.println("email"+email+"\nclave"+password);
+        User user = userService.login(userText.getText(), String.valueOf(jPasswordField1.getPassword()));
+        if(user!=null){
+            javax.swing.JOptionPane.showMessageDialog(this, "ucuario valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+            System.out.println("logrado");
+        }else{
+            javax.swing.JOptionPane.showMessageDialog(this, "ucuario no valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);;}
+//        System.out.println("usuarios registrados");
+//        for (User p : userService.getAllUsers()) {
+//            System.out.println(p);
+//        }
+//        System.out.println(user.toString());
+//        if (user != null) {
+//            currentUser = user;
+//            if ("estudiante".equals(user.getRol())) {
+//                //new EstudianteFrame().setVisible(true);
+//                System.out.println("panel profesor ");
+//            } else if ("docente".equals(user.getRol())) {
+//                //new DocenteFrame().setVisible(true);
+//                System.out.println("panle docente");
+//            }
+//            setVisible(false);
+//        } else {
+//            javax.swing.JOptionPane.showMessageDialog(this,
+//                    "Credenciales incorrectas", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+//        }
     }//GEN-LAST:event_loginButtonMouseClicked
 
     private void loginButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginButtonMouseEntered
@@ -196,7 +234,7 @@ public class GUILogin extends javax.swing.JPanel {
     }//GEN-LAST:event_loginButtonActionPerformed
 
     private void registerButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_registerButtonMouseClicked
-     GUIRegister register = new GUIRegister(content);  
+     GUIRegister register = new GUIRegister(content,userRepository);  
         register.setSize(490, 560);
         register.setLocation(10,3);
         content.removeAll();
