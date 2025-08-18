@@ -1,0 +1,49 @@
+1. Ubicar la dirección del archivo del proyecto
+Ej: C:\Universidad\6to semestre\lab Software II\lab2\software2
+Allí debe estar el archivo basedatos.db (Una vez ejecutado el programa)
+
+2.Descargar los drivers necesarios
+
+a. sqlite-jdbc-3.45.3.0.jar ( ya lo tienen )
+Buscar su ubicación de archivo
+C:\Users\<TU_USUARIO>\.m2\repository\org\xerial\sqlite-jdbc\3.45.3.0
+
+b. slf4j-api-2.0.12.jar
+https://repo1.maven.org/maven2/org/slf4j/slf4j-api/2.0.12/
+Recordar su ubicacion de archivo.
+
+c. slf4j-simple-2.0.12.jar
+https://repo1.maven.org/maven2/org/slf4j/slf4j-simple/2.0.12/
+Recordar su ubicacion de archivo.
+
+3. Configurar el Driver en NetBeans
+a. En NetBeans → Services → Databases → Drivers
+   -Botón derecho en Drivers → New Driver…
+   -Selecciona SQLite.
+
+b. Agrega los JARs: (buscar la ubicacion del archivo)
+
+  -sqlite-jdbc-3.45.3.0.jar
+
+  -slf4j-api-2.0.12.jar
+
+  -slf4j-simple-2.0.12.jar
+
+c. Guarda los cambios.
+
+3. Crear la conexión
+
+a. En NetBeans → Services → Databases → New Connection…
+
+  -Driver Name: SQLite
+
+  -JDBC URL: jdbc:sqlite:C:Ubicar la dirección del archivo del proyecto
+  Ej: jdbc:sqlite:C:/Universidad/6to semestre/lab Software II/lab2/software2/basedatos.db
+
+  -User Name: dejar vacío
+
+  -Password: dejar vacío
+
+b. Haz clic en Test Connection → Debe salir Successful. Y listo, finalizar.
+
+ 
