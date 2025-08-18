@@ -24,7 +24,7 @@ public class GUIDashboard extends javax.swing.JFrame {
      */
     public GUIDashboard() {
         initComponents();
-        GUILogin login = new GUILogin(content,userRepository);
+        GUILogin login = new GUILogin(content,this,userRepository);
         login.setSize(490, 560);
         login.setLocation(10,3);
         content.removeAll();
@@ -44,7 +44,7 @@ public class GUIDashboard extends javax.swing.JFrame {
     private void initComponents() {
 
         jPanel1 = new javax.swing.JPanel();
-        jPanel3 = new javax.swing.JPanel();
+        container = new javax.swing.JPanel();
         jPanel2 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         content = new javax.swing.JPanel();
@@ -61,7 +61,7 @@ public class GUIDashboard extends javax.swing.JFrame {
         jPanel1.setPreferredSize(new java.awt.Dimension(730, 610));
         jPanel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        jPanel3.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        container.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
         jPanel2.setBackground(new java.awt.Color(136, 46, 147));
         jPanel2.setPreferredSize(new java.awt.Dimension(175, 310));
@@ -87,7 +87,7 @@ public class GUIDashboard extends javax.swing.JFrame {
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        jPanel3.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 220, 570));
+        container.add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 220, 570));
 
         content.setBackground(new java.awt.Color(136, 46, 147));
         content.setForeground(new java.awt.Color(255, 255, 255));
@@ -104,9 +104,9 @@ public class GUIDashboard extends javax.swing.JFrame {
             .addGap(0, 0, Short.MAX_VALUE)
         );
 
-        jPanel3.add(content, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 0, 510, 580));
+        container.add(content, new org.netbeans.lib.awtextra.AbsoluteConstraints(220, 0, 510, 580));
 
-        jPanel1.add(jPanel3, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 730, 570));
+        jPanel1.add(container, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 40, 730, 570));
 
         header.setBackground(new java.awt.Color(136, 46, 147));
         header.setPreferredSize(new java.awt.Dimension(700, 45));
@@ -223,12 +223,12 @@ public class GUIDashboard extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel container;
     private javax.swing.JPanel content;
     private javax.swing.JPanel header;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
-    private javax.swing.JPanel jPanel3;
     // End of variables declaration//GEN-END:variables
 }
