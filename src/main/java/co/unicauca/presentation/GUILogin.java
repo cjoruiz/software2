@@ -54,7 +54,6 @@ public class GUILogin extends javax.swing.JPanel {
 
         userLabel.setText("USUARIO");
 
-        userText.setForeground(new java.awt.Color(153, 153, 153));
         userText.setBorder(null);
         userText.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent evt) {
@@ -71,7 +70,6 @@ public class GUILogin extends javax.swing.JPanel {
 
         passwLabel.setText("CONTRASEÑA");
 
-        jPasswordField1.setForeground(new java.awt.Color(153, 153, 153));
         jPasswordField1.setText("*******");
         jPasswordField1.setBorder(null);
         jPasswordField1.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -94,9 +92,8 @@ public class GUILogin extends javax.swing.JPanel {
             }
         });
 
-        loginButton.setBackground(new java.awt.Color(0, 51, 255));
         loginButton.setText("ENTRAR");
-        loginButton.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+        loginButton.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
         loginButton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 loginButtonMouseClicked(evt);
@@ -127,10 +124,10 @@ public class GUILogin extends javax.swing.JPanel {
                     .addComponent(registerButton)
                     .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(passwLabel)
                     .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(userLabel))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(userLabel)
+                    .addComponent(passwLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(136, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -195,11 +192,11 @@ public class GUILogin extends javax.swing.JPanel {
         System.out.println("email"+email+"\nclave"+password);
         User user = userService.login(userText.getText(), String.valueOf(jPasswordField1.getPassword()));
         if(user!=null){
-            javax.swing.JOptionPane.showMessageDialog(this, "ucuario valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+            javax.swing.JOptionPane.showMessageDialog(this, "Usuario valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
 
             System.out.println("logrado");
         }else{
-            javax.swing.JOptionPane.showMessageDialog(this, "ucuario no valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);;}
+            javax.swing.JOptionPane.showMessageDialog(this, "Usuario no valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);;}
 //        System.out.println("usuarios registrados");
 //        for (User p : userService.getAllUsers()) {
 //            System.out.println(p);

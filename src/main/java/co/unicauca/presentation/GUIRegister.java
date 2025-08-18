@@ -74,7 +74,7 @@ public class GUIRegister extends javax.swing.JPanel {
 
         jLabel6.setText("E-MAIL");
 
-        programBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        programBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "INGENIERIA SISTEMAS", "INGENIERIA ELECTRONICA", "AUTOMATICA INDUSTRIAL", "TELEMATICA" }));
 
         jLabel7.setText("TIPO DE USUARIO");
 
@@ -165,7 +165,7 @@ public class GUIRegister extends javax.swing.JPanel {
                             .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel7)))
                     .addComponent(passwRegText, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(171, Short.MAX_VALUE))
+                .addContainerGap(123, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

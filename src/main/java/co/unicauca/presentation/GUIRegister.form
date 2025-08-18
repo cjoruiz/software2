@@ -56,7 +56,7 @@
                   </Group>
                   <Component id="passwRegText" alignment="0" min="-2" pref="236" max="-2" attributes="0"/>
               </Group>
-              <EmptySpace pref="171" max="32767" attributes="0"/>
+              <EmptySpace pref="123" max="32767" attributes="0"/>
           </Group>
       </Group>
     </DimensionLayout>
@@ -147,10 +147,10 @@
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="4">
-            <StringItem index="0" value="Item 1"/>
-            <StringItem index="1" value="Item 2"/>
-            <StringItem index="2" value="Item 3"/>
-            <StringItem index="3" value="Item 4"/>
+            <StringItem index="0" value="INGENIERIA SISTEMAS"/>
+            <StringItem index="1" value="INGENIERIA ELECTRONICA"/>
+            <StringItem index="2" value="AUTOMATICA INDUSTRIAL"/>
+            <StringItem index="3" value="TELEMATICA"/>
           </StringArray>
         </Property>
       </Properties>

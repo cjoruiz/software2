@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -173,17 +174,17 @@ public class UserRepository implements IUserRepository {
     }
 
     public void connect() {
-        // SQLite connection string
-        //String url = "jdbc:sqlite:./mydatabase.db";
-        String url = "jdbc:sqlite::memory:";
+    // SQLite en un archivo físico en la carpeta del proyecto
+    String url = "jdbc:sqlite:basedatos.db";
 
-        try {
-            conn = DriverManager.getConnection(url);
-
-        } catch (SQLException ex) {
-            Logger.getLogger(Provider.Service.class.getName()).log(Level.SEVERE, null, ex);
-        }
+    try {
+        conn = DriverManager.getConnection(url);
+        System.out.println("Conexión establecida con " + url);
+    } catch (SQLException ex) {
+        Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
     }
+}
+
 
     public void disconnect() {
         try {
