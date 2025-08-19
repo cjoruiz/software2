@@ -8,6 +8,7 @@ import co.unicauca.solid.domain.User;
 import co.unicauca.solid.service.UserService;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import javax.swing.JFrame;
 import javax.swing.JPanel;
 /**
  *
@@ -15,17 +16,20 @@ import javax.swing.JPanel;
  */
 public class GUILogin extends javax.swing.JPanel {
     int xMouse, yMouse;
+    private static User currentUser;
     private JPanel content;
+    private JFrame container;
     IUserRepository userRepository;
     private static UserService userService;
  
     /**
      * Creates new form Register
      */
-    public GUILogin(JPanel content,IUserRepository userRepository) {
+    public GUILogin(JPanel content,JFrame container,IUserRepository userRepository) {
         initComponents();
         this.content = content;
         this.userRepository=userRepository;
+        this.container=container;
     }
 
     /**
@@ -50,6 +54,7 @@ public class GUILogin extends javax.swing.JPanel {
         setBackground(new java.awt.Color(255, 255, 255));
         setPreferredSize(new java.awt.Dimension(500, 600));
 
+        jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel2.setText("INICIAR SESIÓN");
 
         userLabel.setText("USUARIO");
@@ -127,20 +132,20 @@ public class GUILogin extends javax.swing.JPanel {
                     .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 310, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(userLabel)
                     .addComponent(passwLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(136, Short.MAX_VALUE))
+                .addContainerGap(126, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(130, 130, 130)
+                .addGap(97, 97, 97)
                 .addComponent(jLabel2)
-                .addGap(18, 18, 18)
+                .addGap(51, 51, 51)
                 .addComponent(userLabel)
                 .addGap(18, 18, 18)
                 .addComponent(userText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 73, Short.MAX_VALUE)
                 .addComponent(passwLabel)
                 .addGap(18, 18, 18)
                 .addComponent(jPasswordField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -185,37 +190,31 @@ public class GUILogin extends javax.swing.JPanel {
 
     private void loginButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginButtonMouseClicked
         userService = new UserService(userRepository);
-        javax.swing.JOptionPane.showMessageDialog(this, "intento prueba datos: \nUsuario: " + userText.getText() + "\ncontraseña: " + String.valueOf(jPasswordField1.getPassword()), "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+//        javax.swing.JOptionPane.showMessageDialog(this, "intento prueba datos: \nUsuario: " + userText.getText() + "\ncontraseña: " + String.valueOf(jPasswordField1.getPassword()), "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
 
-        String email = userText.getText();
-        String password = String.valueOf(jPasswordField1.getPassword());
-        System.out.println("email"+email+"\nclave"+password);
         User user = userService.login(userText.getText(), String.valueOf(jPasswordField1.getPassword()));
-        if(user!=null){
-            javax.swing.JOptionPane.showMessageDialog(this, "Usuario valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
-
-            System.out.println("logrado");
-        }else{
-            javax.swing.JOptionPane.showMessageDialog(this, "Usuario no valido", "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);;}
 //        System.out.println("usuarios registrados");
 //        for (User p : userService.getAllUsers()) {
 //            System.out.println(p);
 //        }
 //        System.out.println(user.toString());
-//        if (user != null) {
-//            currentUser = user;
-//            if ("estudiante".equals(user.getRol())) {
-//                //new EstudianteFrame().setVisible(true);
-//                System.out.println("panel profesor ");
-//            } else if ("docente".equals(user.getRol())) {
-//                //new DocenteFrame().setVisible(true);
-//                System.out.println("panle docente");
-//            }
-//            setVisible(false);
-//        } else {
-//            javax.swing.JOptionPane.showMessageDialog(this,
-//                    "Credenciales incorrectas", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
-//        }
+        if (user != null) {
+            currentUser = user;
+            System.out.println("rol: "+user.getRol() );
+            if ("ESTUDIANTE".equals(user.getRol())) {
+                System.out.println("panel estudiante");
+                new GUIEstudianteFrame(userRepository,currentUser).setVisible(true);
+                container.dispose();
+                
+            } else if ("DOCENTE".equals(user.getRol())) {
+                System.out.println("panle docente");
+                new GUIDocenteFrame(userRepository,currentUser).setVisible(true);
+                container.dispose();
+            }
+        } else {
+            javax.swing.JOptionPane.showMessageDialog(this,
+                    "Credenciales incorrectas", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+        }
     }//GEN-LAST:event_loginButtonMouseClicked
 
     private void loginButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginButtonMouseEntered
@@ -231,7 +230,7 @@ public class GUILogin extends javax.swing.JPanel {
     }//GEN-LAST:event_loginButtonActionPerformed
 
     private void registerButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_registerButtonMouseClicked
-     GUIRegister register = new GUIRegister(content,userRepository);  
+     GUIRegister register = new GUIRegister(content,container,userRepository);  
         register.setSize(490, 560);
         register.setLocation(10,3);
         content.removeAll();

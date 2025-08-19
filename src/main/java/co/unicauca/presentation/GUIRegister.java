@@ -8,6 +8,7 @@ import co.unicauca.solid.access.IUserRepository;
 import co.unicauca.solid.domain.User;
 import co.unicauca.solid.service.UserService;
 import java.awt.BorderLayout;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 
@@ -17,17 +18,28 @@ import javax.swing.JPanel;
  */
 public class GUIRegister extends javax.swing.JPanel {
     private JPanel content;
+    private JFrame container;
     private static UserService userService;
     IUserRepository userRepository;
     /**
      * Creates new form GUIRegister
      */
-    public GUIRegister(JPanel content,IUserRepository userRepository) {
+    public GUIRegister(JPanel content,JFrame container,IUserRepository userRepository) {
         initComponents();
         this.content = content;
         this.userRepository=userRepository;
+        this.container=container;
     }
 
+    private void loginPanel(){
+        GUILogin login = new GUILogin(content,container,userRepository);
+        login.setSize(490, 560);
+        login.setLocation(10,3);
+        content.removeAll();
+        content.add(login,BorderLayout.CENTER);
+        content.revalidate();
+        content.repaint();
+    }
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -58,6 +70,7 @@ public class GUIRegister extends javax.swing.JPanel {
         jButton2 = new javax.swing.JButton();
         jLabel8 = new javax.swing.JLabel();
         passwRegText = new javax.swing.JTextField();
+        jLabel9 = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(255, 255, 255));
         setPreferredSize(new java.awt.Dimension(500, 600));
@@ -72,7 +85,7 @@ public class GUIRegister extends javax.swing.JPanel {
 
         jLabel5.setText("PROGRAMA");
 
-        jLabel6.setText("E-MAIL");
+        jLabel6.setText("E-MAIL (******@unicauca.edu.co)");
 
         programBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "INGENIERIA SISTEMAS", "INGENIERIA ELECTRONICA", "AUTOMATICA INDUSTRIAL", "TELEMATICA" }));
 
@@ -133,6 +146,8 @@ public class GUIRegister extends javax.swing.JPanel {
             }
         });
 
+        jLabel9.setText(" (minimo 6 caracteres, 1 mayuscula,1 numero ,1 caracter especial)");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -140,12 +155,14 @@ public class GUIRegister extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(55, 55, 55)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel9)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton1)
+                        .addGap(171, 171, 171)
+                        .addComponent(jButton2))
                     .addComponent(jLabel8)
-                    .addComponent(jButton2)
-                    .addComponent(jButton1)
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(jSeparator1)
                             .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel6)
                             .addComponent(jLabel5)
@@ -153,9 +170,6 @@ public class GUIRegister extends javax.swing.JPanel {
                             .addComponent(jLabel3)
                             .addComponent(jLabel2)
                             .addComponent(jLabel1)
-                            .addComponent(jSeparator2)
-                            .addComponent(jSeparator3)
-                            .addComponent(jSeparator4)
                             .addComponent(nameText)
                             .addComponent(lastNameText)
                             .addComponent(celText)
@@ -164,8 +178,13 @@ public class GUIRegister extends javax.swing.JPanel {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel7)))
-                    .addComponent(passwRegText, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(123, Short.MAX_VALUE))
+                    .addComponent(passwRegText, javax.swing.GroupLayout.PREFERRED_SIZE, 236, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                        .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
+                        .addComponent(jSeparator2, javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.LEADING))
+                    .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 234, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(60, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -206,13 +225,15 @@ public class GUIRegister extends javax.swing.JPanel {
                 .addComponent(jSeparator4, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(jLabel8)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jLabel9)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(passwRegText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28)
-                .addComponent(jButton1)
-                .addGap(18, 18, 18)
-                .addComponent(jButton2)
-                .addContainerGap(82, Short.MAX_VALUE))
+                .addGap(44, 44, 44)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton1)
+                    .addComponent(jButton2))
+                .addContainerGap(91, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -221,13 +242,7 @@ public class GUIRegister extends javax.swing.JPanel {
     }//GEN-LAST:event_nameTextActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        GUILogin login = new GUILogin(content,userRepository);
-        login.setSize(490, 560);
-        login.setLocation(10,3);
-        content.removeAll();
-        content.add(login,BorderLayout.CENTER);
-        content.revalidate();
-        content.repaint();
+        loginPanel();
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
@@ -239,20 +254,32 @@ public class GUIRegister extends javax.swing.JPanel {
     }//GEN-LAST:event_emailTextActionPerformed
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-        javax.swing.JOptionPane.showMessageDialog(
-            this,
-            "intento prueba datos: \nUsuario: "+nameText.getText()+"\nApellido: "+ lastNameText.getText()+"\nCelular: "+celText.getText()+"\nPrograma: "+programBox.getSelectedItem()+"Email: "+emailText.getText()+"\nUsuario"+userTypeBox.getSelectedItem(), 
-            "LOGIN",javax.swing.JOptionPane.INFORMATION_MESSAGE); 
             User newUser = new User(emailText.getText(),passwRegText.getText(),nameText.getText(),lastNameText.getText(),celText.getText(),(String)programBox.getSelectedItem(),(String)userTypeBox.getSelectedItem());
      
             userService = new UserService(userRepository);
             if (userService.registerUser(newUser)) {
                     JOptionPane.showMessageDialog(this, 
-                        "Usuario registrado exitosamente", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    System.out.println("usuarios registrados");
+                        "Usuario registrado exitosamente \nNombre: "+nameText.getText()+" "+ lastNameText.getText()+"\nCelular: "+celText.getText()+"\nPrograma: "+programBox.getSelectedItem()+"\nEmail: "+emailText.getText()+"\nRol: "+userTypeBox.getSelectedItem(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                    emailText.setText("");
+                    passwRegText.setText("");
+                    nameText.setText("");
+                    lastNameText.setText("");
+                    celText.setText("");
+                    
                     for (User p : userService.getAllUsers()) {
                     System.out.println(p);
                     }
+                    if ("ESTUDIANTE".equals(newUser.getRol())) {
+                    System.out.println("panel estudiante");
+                    new GUIEstudianteFrame(userRepository,newUser).setVisible(true);
+                    container.dispose();
+
+                    } else if ("DOCENTE".equals(newUser.getRol())) {
+                        System.out.println("panle docente");
+                        new GUIDocenteFrame(userRepository,newUser).setVisible(true);
+                        container.dispose();
+                    }
+//                    loginPanel();
                     
             } else {
                     JOptionPane.showMessageDialog(this, 
@@ -279,6 +306,7 @@ public class GUIRegister extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;
     private javax.swing.JSeparator jSeparator2;
     private javax.swing.JSeparator jSeparator3;
