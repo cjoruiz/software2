@@ -7,6 +7,7 @@ package co.unicauca.presentation;
 import co.unicauca.solid.access.IUserRepository;
 import co.unicauca.solid.domain.User;
 import co.unicauca.solid.service.UserService;
+import co.unicauca.utilities.exeption.*;
 import java.awt.BorderLayout;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -17,29 +18,32 @@ import javax.swing.JPanel;
  * @author crist
  */
 public class GUIRegister extends javax.swing.JPanel {
+
     private JPanel content;
     private JFrame container;
     private static UserService userService;
     IUserRepository userRepository;
+
     /**
      * Creates new form GUIRegister
      */
-    public GUIRegister(JPanel content,JFrame container,IUserRepository userRepository) {
+    public GUIRegister(JPanel content, JFrame container, IUserRepository userRepository) {
         initComponents();
         this.content = content;
-        this.userRepository=userRepository;
-        this.container=container;
+        this.userRepository = userRepository;
+        this.container = container;
     }
 
-    private void loginPanel(){
-        GUILogin login = new GUILogin(content,container,userRepository);
+    private void loginPanel() {
+        GUILogin login = new GUILogin(content, container, userRepository);
         login.setSize(490, 560);
-        login.setLocation(10,3);
+        login.setLocation(10, 3);
         content.removeAll();
-        content.add(login,BorderLayout.CENTER);
+        content.add(login, BorderLayout.CENTER);
         content.revalidate();
         content.repaint();
     }
+
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -54,7 +58,7 @@ public class GUIRegister extends javax.swing.JPanel {
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
+        lbtextEmail = new javax.swing.JLabel();
         programBox = new javax.swing.JComboBox<>();
         jLabel7 = new javax.swing.JLabel();
         userTypeBox = new javax.swing.JComboBox<>();
@@ -85,7 +89,7 @@ public class GUIRegister extends javax.swing.JPanel {
 
         jLabel5.setText("PROGRAMA");
 
-        jLabel6.setText("E-MAIL (******@unicauca.edu.co)");
+        lbtextEmail.setText("E-MAIL (******@unicauca.edu.co)");
 
         programBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "INGENIERIA SISTEMAS", "INGENIERIA ELECTRONICA", "AUTOMATICA INDUSTRIAL", "TELEMATICA" }));
 
@@ -164,7 +168,7 @@ public class GUIRegister extends javax.swing.JPanel {
                     .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel6)
+                            .addComponent(lbtextEmail)
                             .addComponent(jLabel5)
                             .addComponent(jLabel4)
                             .addComponent(jLabel3)
@@ -218,7 +222,7 @@ public class GUIRegister extends javax.swing.JPanel {
                     .addComponent(programBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(userTypeBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addComponent(jLabel6)
+                .addComponent(lbtextEmail)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(emailText, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(2, 2, 2)
@@ -254,21 +258,26 @@ public class GUIRegister extends javax.swing.JPanel {
     }//GEN-LAST:event_emailTextActionPerformed
 
     private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
-            User newUser = new User(emailText.getText(),passwRegText.getText(),nameText.getText(),lastNameText.getText(),celText.getText(),(String)programBox.getSelectedItem(),(String)userTypeBox.getSelectedItem());
-     
+        User newUser = new User(emailText.getText(), passwRegText.getText(), nameText.getText(), lastNameText.getText(), celText.getText(), (String) programBox.getSelectedItem(), (String) userTypeBox.getSelectedItem());
+        try {
             userService = new UserService(userRepository);
-            if (userService.registerUser(newUser)) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Usuario registrado exitosamente \nNombre: "+nameText.getText()+" "+ lastNameText.getText()+"\nCelular: "+celText.getText()+"\nPrograma: "+programBox.getSelectedItem()+"\nEmail: "+emailText.getText()+"\nRol: "+userTypeBox.getSelectedItem(), "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                    emailText.setText("");
-                    passwRegText.setText("");
-                    nameText.setText("");
-                    lastNameText.setText("");
-                    celText.setText("");
-                    
-                    for (User p : userService.getAllUsers()) {
-                    System.out.println(p);
-                    }
+            userService.registerUser(newUser);
+        } catch (UserAlreadyExistsException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "usuario duplicado",
+                    JOptionPane.WARNING_MESSAGE);
+        } catch (InvalidUserDataException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(),
+                    "usuario duplicado",
+                    JOptionPane.WARNING_MESSAGE);
+        } catch (Exception ex) {
+
+            JOptionPane.showMessageDialog(this,
+                    "Error inesperado: " + ex.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+
                     if ("ESTUDIANTE".equals(newUser.getRol())) {
                     System.out.println("panel estudiante");
                     new GUIEstudianteFrame(userRepository,newUser).setVisible(true);
@@ -280,12 +289,7 @@ public class GUIRegister extends javax.swing.JPanel {
                         container.dispose();
                     }
 //                    loginPanel();
-                    
-            } else {
-                    JOptionPane.showMessageDialog(this, 
-                        "Error al registrar usuario. Verifique que el email sea institucional y la contraseña cumpla los requisitos.", 
-                        "Error", JOptionPane.ERROR_MESSAGE);
-            }
+       
     }//GEN-LAST:event_jButton1MouseClicked
 
     private void passwRegTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passwRegTextActionPerformed
@@ -303,7 +307,6 @@ public class GUIRegister extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JLabel jLabel9;
@@ -312,6 +315,7 @@ public class GUIRegister extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator3;
     private javax.swing.JSeparator jSeparator4;
     private javax.swing.JTextField lastNameText;
+    private javax.swing.JLabel lbtextEmail;
     private javax.swing.JTextField nameText;
     private javax.swing.JTextField passwRegText;
     private javax.swing.JComboBox<String> programBox;

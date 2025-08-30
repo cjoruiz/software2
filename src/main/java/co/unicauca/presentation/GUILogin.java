@@ -3,12 +3,16 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JPanel.java to edit this template
  */
 package co.unicauca.presentation;
+import static co.unicauca.presentation.GUIEstudianteFrame.user;
 import co.unicauca.solid.access.IUserRepository;
 import co.unicauca.solid.domain.User;
 import co.unicauca.solid.service.UserService;
+import co.unicauca.utilities.exeption.InvalidUserDataException;
+import co.unicauca.utilities.exeption.LoginException;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 /**
  *
@@ -192,15 +196,18 @@ public class GUILogin extends javax.swing.JPanel {
         userService = new UserService(userRepository);
 //        javax.swing.JOptionPane.showMessageDialog(this, "intento prueba datos: \nUsuario: " + userText.getText() + "\ncontraseña: " + String.valueOf(jPasswordField1.getPassword()), "LOGIN", javax.swing.JOptionPane.INFORMATION_MESSAGE);
 
-        User user = userService.login(userText.getText(), String.valueOf(jPasswordField1.getPassword()));
-//        System.out.println("usuarios registrados");
-//        for (User p : userService.getAllUsers()) {
-//            System.out.println(p);
-//        }
-//        System.out.println(user.toString());
-        if (user != null) {
-            currentUser = user;
-            System.out.println("rol: "+user.getRol() );
+//        User user = userService.login(userText.getText(), String.valueOf(jPasswordField1.getPassword()));
+try {
+            String email = userText.getText().trim();
+            String password = String.valueOf(jPasswordField1.getPassword());
+            
+            User user = userService.login(email, password);
+            
+            // Login exitoso
+            JOptionPane.showMessageDialog(this, 
+                "Bienvenido, " + user.getNombres() + "!", 
+                "Login Exitoso", 
+                JOptionPane.INFORMATION_MESSAGE);
             if ("ESTUDIANTE".equals(user.getRol())) {
                 System.out.println("panel estudiante");
                 new GUIEstudianteFrame(userRepository,currentUser).setVisible(true);
@@ -211,10 +218,37 @@ public class GUILogin extends javax.swing.JPanel {
                 new GUIDocenteFrame(userRepository,currentUser).setVisible(true);
                 container.dispose();
             }
-        } else {
-            javax.swing.JOptionPane.showMessageDialog(this,
-                    "Credenciales incorrectas", "Error", javax.swing.JOptionPane.ERROR_MESSAGE);
+            // Abrir ventana principal de la aplicación
+            // openMainWindow(user);
+            
+        } catch (LoginException ex) {
+            // Credenciales incorrectas
+            JOptionPane.showMessageDialog(this, 
+                ex.getMessage(), 
+                "Error de Autenticación", 
+                JOptionPane.ERROR_MESSAGE);
+            jPasswordField1.setText("");
+
+            
+        } catch (InvalidUserDataException ex) {
+            // Datos inválidos
+            JOptionPane.showMessageDialog(this, 
+                ex.getMessage(), 
+                "Datos Inválidos", 
+                JOptionPane.WARNING_MESSAGE);
+            
+        } catch (Exception ex) {
+            // Error inesperado
+            JOptionPane.showMessageDialog(this, 
+                "Error inesperado: " + ex.getMessage(), 
+                "Error", 
+                JOptionPane.ERROR_MESSAGE);
+            ex.printStackTrace();
         }
+    
+
+            
+
     }//GEN-LAST:event_loginButtonMouseClicked
 
     private void loginButtonMouseEntered(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginButtonMouseEntered
