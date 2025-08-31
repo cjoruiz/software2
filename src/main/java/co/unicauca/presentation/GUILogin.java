@@ -20,7 +20,6 @@ import javax.swing.JPanel;
  */
 public class GUILogin extends javax.swing.JPanel {
     int xMouse, yMouse;
-    private static User currentUser;
     private JPanel content;
     private JFrame container;
     IUserRepository userRepository;
@@ -202,7 +201,7 @@ try {
             String password = String.valueOf(jPasswordField1.getPassword());
             
             User user = userService.login(email, password);
-            
+            System.out.println(user.toString());
             // Login exitoso
             JOptionPane.showMessageDialog(this, 
                 "Bienvenido, " + user.getNombres() + "!", 
@@ -210,12 +209,12 @@ try {
                 JOptionPane.INFORMATION_MESSAGE);
             if ("ESTUDIANTE".equals(user.getRol())) {
                 System.out.println("panel estudiante");
-                new GUIEstudianteFrame(userRepository,currentUser).setVisible(true);
+                new GUIEstudianteFrame(userRepository,user).setVisible(true);
                 container.dispose();
                 
             } else if ("DOCENTE".equals(user.getRol())) {
                 System.out.println("panle docente");
-                new GUIDocenteFrame(userRepository,currentUser).setVisible(true);
+                new GUIDocenteFrame(userRepository,user).setVisible(true);
                 container.dispose();
             }
             // Abrir ventana principal de la aplicación
