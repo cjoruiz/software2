@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package co.unicauca.solid.access;
+
 import co.unicauca.solid.domain.ProyectoGrado;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -18,23 +19,28 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * Repository para ProyectoGrado - Maneja toda la lógica de persistencia
+ * de los proyectos de grado y su estado
+ * 
  * @author crist
  */
-
-public class ProyectoGradoRepository implements IProyectoGradoRepository{
+public class ProyectoGradoRepository implements IProyectoGradoRepository {
     
     public ProyectoGradoRepository() {
         initDatabase();
     }
     
-    // Insertar proyecto de grado
     @Override
     public int insertarProyecto(ProyectoGrado proyecto) {
-        String sql = "INSERT INTO proyectos_grado (titulo, modalidad, director_email, " +
-                    "codirector_email, estudiante_email, objetivo_general, objetivos_especificos, " +
-                    "estado_actual, numero_intento, fecha_creacion, fecha_ultima_actualizacion, " +
-                    "rechazado_definitivamente) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = """
+            INSERT INTO proyectos_grado (
+                titulo, modalidad, director_email, codirector_email, 
+                estudiante_email, objetivo_general, objetivos_especificos, 
+                estado_actual, numero_intento, fecha_creacion, 
+                fecha_ultima_actualizacion, rechazado_definitivamente,
+                observaciones_evaluacion
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """;
         
         try (Connection connection = getConnection(); 
              PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -48,9 +54,14 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
             pstmt.setString(7, proyecto.getObjetivosEspecificos());
             pstmt.setString(8, proyecto.getEstadoActual());
             pstmt.setInt(9, proyecto.getNumeroIntento());
-            pstmt.setTimestamp(10, Timestamp.valueOf(proyecto.getFechaCreacion()));
-            pstmt.setTimestamp(11, Timestamp.valueOf(proyecto.getFechaUltimaActualizacion()));
+            String fechaFormateada = proyecto.getFechaCreacion().toString().replace("T", " ");
+                pstmt.setString(10, fechaFormateada);
+                
+            fechaFormateada = proyecto.getFechaUltimaActualizacion().toString().replace("T", " ");
+                pstmt.setString(11, fechaFormateada);
+            
             pstmt.setString(12, String.valueOf(proyecto.getRechazadoDefinitivamente()));
+            pstmt.setString(13, proyecto.getObservacionesEvaluacion());
             
             int affectedRows = pstmt.executeUpdate();
             
@@ -69,11 +80,9 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Obtener proyecto por ID
     @Override
     public ProyectoGrado obtenerProyectoPorId(int idProyecto) {
         String sql = "SELECT * FROM proyectos_grado WHERE id_proyecto = ?";
-        ProyectoGrado proyecto = null;
         
         try (Connection connection = getConnection(); 
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -82,10 +91,10 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
             
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
-                    proyecto = mapearProyecto(rs);
+                    return mapearProyecto(rs);
                 }
             }
-            return proyecto;
+            return null;
             
         } catch (SQLException e) {
             System.err.println("Error obteniendo proyecto: " + e.getMessage());
@@ -93,7 +102,6 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Obtener proyectos por estudiante
     @Override
     public List<ProyectoGrado> obtenerProyectosPorEstudiante(String estudianteEmail) {
         String sql = "SELECT * FROM proyectos_grado WHERE estudiante_email = ? ORDER BY fecha_creacion DESC";
@@ -117,7 +125,6 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Obtener proyectos por director
     @Override
     public List<ProyectoGrado> obtenerProyectosPorDirector(String directorEmail) {
         String sql = "SELECT * FROM proyectos_grado WHERE director_email = ? ORDER BY fecha_creacion DESC";
@@ -141,7 +148,36 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Obtener todos los proyectos
+    /**
+     * Obtiene proyectos que están pendientes de evaluación por el coordinador
+     */
+    public List<ProyectoGrado> obtenerProyectosPendientesEvaluacion() {
+        String sql = """
+            SELECT * FROM proyectos_grado 
+            WHERE estado_actual IN (
+                'EN_PRIMERA_EVALUACION_FORMATO_A', 
+                'EN_SEGUNDA_EVALUACION_FORMATO_A', 
+                'EN_TERCERA_EVALUACION_FORMATO_A'
+            ) 
+            ORDER BY fecha_creacion ASC
+            """;
+        List<ProyectoGrado> proyectos = new ArrayList<>();
+        
+        try (Connection connection = getConnection(); 
+             Statement stmt = connection.createStatement(); 
+             ResultSet rs = stmt.executeQuery(sql)) {
+            
+            while (rs.next()) {
+                proyectos.add(mapearProyecto(rs));
+            }
+            return proyectos;
+            
+        } catch (SQLException e) {
+            System.err.println("Error obteniendo proyectos pendientes: " + e.getMessage());
+            return proyectos;
+        }
+    }
+    
     @Override
     public List<ProyectoGrado> obtenerTodosProyectos() {
         String sql = "SELECT * FROM proyectos_grado ORDER BY fecha_creacion DESC";
@@ -162,14 +198,18 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Actualizar proyecto
     @Override
     public boolean actualizarProyecto(ProyectoGrado proyecto) {
-        String sql = "UPDATE proyectos_grado SET titulo = ?, modalidad = ?, director_email = ?, " +
-                    "codirector_email = ?, estudiante_email = ?, objetivo_general = ?, " +
-                    "objetivos_especificos = ?, estado_actual = ?, numero_intento = ?, " +
-                    "fecha_ultima_actualizacion = ?, rechazado_definitivamente = ? " +
-                    "WHERE id_proyecto = ?";
+        String sql = """
+            UPDATE proyectos_grado SET 
+                titulo = ?, modalidad = ?, director_email = ?, 
+                codirector_email = ?, estudiante_email = ?, 
+                objetivo_general = ?, objetivos_especificos = ?, 
+                estado_actual = ?, numero_intento = ?, 
+                fecha_ultima_actualizacion = ?, rechazado_definitivamente = ?,
+                observaciones_evaluacion = ?
+            WHERE id_proyecto = ?
+            """;
         
         try (Connection connection = getConnection(); 
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -185,7 +225,8 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
             pstmt.setInt(9, proyecto.getNumeroIntento());
             pstmt.setTimestamp(10, Timestamp.valueOf(LocalDateTime.now()));
             pstmt.setString(11, String.valueOf(proyecto.getRechazadoDefinitivamente()));
-            pstmt.setInt(12, proyecto.getIdProyecto());
+            pstmt.setString(12, proyecto.getObservacionesEvaluacion());
+            pstmt.setInt(13, proyecto.getIdProyecto());
             
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
@@ -196,11 +237,99 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Actualizar estado del proyecto
+    /**
+     * Evalúa un formato A - Método específico para coordinadores
+     */
+    public boolean evaluarFormatoA(int idProyecto, boolean aprobado, String observaciones) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            
+            try {
+                // Obtener el proyecto actual
+                ProyectoGrado proyecto = obtenerProyectoPorId(idProyecto);
+                if (proyecto == null) {
+                    throw new SQLException("Proyecto no encontrado");
+                }
+                
+                if (aprobado) {
+                    proyecto.aprobarFormatoA();
+                } else {
+                    proyecto.rechazarFormatoA(observaciones);
+                }
+                
+                // Actualizar proyecto
+                boolean actualizado = actualizarProyecto(proyecto);
+                
+                if (actualizado) {
+                    connection.commit();
+                    return true;
+                } else {
+                    connection.rollback();
+                    return false;
+                }
+                
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error evaluando formato A: " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Procesa un reintento de formato A
+     */
+    public boolean procesarReintentoFormatoA(int idProyecto) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            
+            try {
+                ProyectoGrado proyecto = obtenerProyectoPorId(idProyecto);
+                if (proyecto == null) {
+                    throw new SQLException("Proyecto no encontrado");
+                }
+                
+                if (!proyecto.puedeReintentar()) {
+                    throw new IllegalStateException("El proyecto no puede reintentar más veces");
+                }
+                
+                proyecto.procesarReintentoFormatoA();
+                
+                boolean actualizado = actualizarProyecto(proyecto);
+                
+                if (actualizado) {
+                    connection.commit();
+                    return true;
+                } else {
+                    connection.rollback();
+                    return false;
+                }
+                
+            } catch (Exception e) {
+                connection.rollback();
+                throw e;
+            } finally {
+                connection.setAutoCommit(true);
+            }
+            
+        } catch (SQLException e) {
+            System.err.println("Error procesando reintento: " + e.getMessage());
+            return false;
+        }
+    }
+    
     @Override
     public boolean actualizarEstadoProyecto(int idProyecto, String nuevoEstado) {
-        String sql = "UPDATE proyectos_grado SET estado_actual = ?, fecha_ultima_actualizacion = ? " +
-                    "WHERE id_proyecto = ?";
+        String sql = """
+            UPDATE proyectos_grado SET 
+                estado_actual = ?, fecha_ultima_actualizacion = ? 
+            WHERE id_proyecto = ?
+            """;
         
         try (Connection connection = getConnection(); 
              PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -218,41 +347,21 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Incrementar número de intento
     @Override
     public boolean incrementarIntento(int idProyecto) {
-        String sql = "UPDATE proyectos_grado SET numero_intento = numero_intento + 1, " +
-                    "fecha_ultima_actualizacion = ? WHERE id_proyecto = ?";
-        
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            
-            pstmt.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
-            pstmt.setInt(2, idProyecto);
-            
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
-            
-        } catch (SQLException e) {
-            System.err.println("Error incrementando intento: " + e.getMessage());
-            return false;
-        }
+        return procesarReintentoFormatoA(idProyecto);
     }
     
-    // Marcar como rechazado definitivamente
     @Override
     public boolean marcarRechazoDefinitivo(int idProyecto) {
-        String sql = "UPDATE proyectos_grado SET rechazado_definitivamente = 'S', " +
-                    "fecha_ultima_actualizacion = ? WHERE id_proyecto = ?";
-        
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection()) {
+            ProyectoGrado proyecto = obtenerProyectoPorId(idProyecto);
+            if (proyecto == null) {
+                return false;
+            }
             
-            pstmt.setTimestamp(1, Timestamp.valueOf(LocalDateTime.now()));
-            pstmt.setInt(2, idProyecto);
-            
-            int affectedRows = pstmt.executeUpdate();
-            return affectedRows > 0;
+            proyecto.marcarRechazoDefinitivo();
+            return actualizarProyecto(proyecto);
             
         } catch (SQLException e) {
             System.err.println("Error marcando rechazo definitivo: " + e.getMessage());
@@ -260,7 +369,6 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Eliminar proyecto
     @Override
     public boolean eliminarProyecto(int idProyecto) {
         String sql = "DELETE FROM proyectos_grado WHERE id_proyecto = ?";
@@ -278,7 +386,9 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Método para mapear ResultSet a ProyectoGrado
+    /**
+     * Mapea ResultSet a ProyectoGrado
+     */
     private ProyectoGrado mapearProyecto(ResultSet rs) throws SQLException {
         ProyectoGrado proyecto = new ProyectoGrado();
         proyecto.setIdProyecto(rs.getInt("id_proyecto"));
@@ -291,6 +401,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         proyecto.setObjetivosEspecificos(rs.getString("objetivos_especificos"));
         proyecto.setEstadoActual(rs.getString("estado_actual"));
         proyecto.setNumeroIntento(rs.getInt("numero_intento"));
+        proyecto.setObservacionesEvaluacion(rs.getString("observaciones_evaluacion"));
         
         Timestamp fechaCreacion = rs.getTimestamp("fecha_creacion");
         if (fechaCreacion != null) {
@@ -310,7 +421,9 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         return proyecto;
     }
     
-    // Inicializar base de datos
+    /**
+     * Inicializa la base de datos con la nueva estructura
+     */
     private void initDatabase() {
         String sql = """
             CREATE TABLE IF NOT EXISTS proyectos_grado (
@@ -322,11 +435,25 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
                 estudiante_email TEXT NOT NULL,
                 objetivo_general TEXT,
                 objetivos_especificos TEXT,
-                estado_actual TEXT DEFAULT 'EN_PRIMERA_EVALUACION_FORMATO_A',
+                estado_actual TEXT DEFAULT 'EN_PRIMERA_EVALUACION_FORMATO_A' CHECK (estado_actual IN (
+                    'EN_PRIMERA_EVALUACION_FORMATO_A',
+                    'EN_SEGUNDA_EVALUACION_FORMATO_A', 
+                    'EN_TERCERA_EVALUACION_FORMATO_A',
+                    'FORMATO_A_APROBADO',
+                    'FORMATO_A_RECHAZADO',
+                    'EN_EVALUACION_FORMATO_B',
+                    'FORMATO_B_RECHAZADO',
+                    'FORMATO_B_APROBADO',
+                    'EN_DESARROLLO',
+                    'EN_EVALUACION_FINAL',
+                    'APROBADO',
+                    'RECHAZADO_DEFINITIVO'
+                )),
                 numero_intento INTEGER DEFAULT 1 CHECK (numero_intento BETWEEN 1 AND 3),
                 fecha_creacion TEXT NOT NULL,
                 fecha_ultima_actualizacion TEXT NOT NULL,
                 rechazado_definitivamente TEXT DEFAULT 'N' CHECK (rechazado_definitivamente IN ('S', 'N')),
+                observaciones_evaluacion TEXT,
                 FOREIGN KEY (director_email) REFERENCES usuarios(email),
                 FOREIGN KEY (codirector_email) REFERENCES usuarios(email),
                 FOREIGN KEY (estudiante_email) REFERENCES usuarios(email)
@@ -343,7 +470,9 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository{
         }
     }
     
-    // Método para obtener conexión
+    /**
+     * Obtiene conexión a la base de datos
+     */
     private Connection getConnection() throws SQLException {
         String url = "jdbc:sqlite:basedatos.db";
         return DriverManager.getConnection(url);

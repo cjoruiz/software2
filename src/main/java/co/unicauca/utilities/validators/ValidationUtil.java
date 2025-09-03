@@ -45,6 +45,14 @@ public class ValidationUtil {
         }
     }
 
+    public static void validarPositivo(long valor, String nombreCampo) throws InvalidUserDataException {
+        if (valor <= 0L) {
+            throw new InvalidUserDataException(
+                    nombreCampo + " debe ser un número positivo mayor que cero. Valor recibido: " + valor
+            );
+        }
+    }
+
     public static void validarNoNulo(Object objeto, String campo) throws InvalidUserDataException {
         if (objeto == null) {
             throw new InvalidUserDataException("El " + campo + " no puede ser nulo");

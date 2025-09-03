@@ -4,7 +4,7 @@
  */
 package co.unicauca.presentation;
 
-import co.unicauca.solid.access.FormatoARepository;
+import co.unicauca.solid.access.FilePGRepository;
 import co.unicauca.solid.access.IUserRepository;
 import co.unicauca.solid.domain.User;
 import java.awt.FileDialog;
@@ -16,7 +16,7 @@ import javax.swing.JOptionPane;
  * @author crist
  */
 public class GUIDocenteFrame extends javax.swing.JFrame {
-    FormatoARepository localFileRepository = new FormatoARepository();
+    FilePGRepository localFileRepository = new FilePGRepository();
     static IUserRepository userRepository;
     static User user;
 

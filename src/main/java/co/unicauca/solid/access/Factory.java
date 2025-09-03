@@ -28,11 +28,11 @@ public class Factory {
         return result;
     }
 
-    public IFormatoARepository getFileRepository(String type) {
-        IFormatoARepository result = null;
+    public IFilePGRepository getFileRepository(String type) {
+        IFilePGRepository result = null;
         switch (type) {
             case "default":
-                result = new FormatoARepository();
+                result = new FilePGRepository();
                 break;
         }
         return result;

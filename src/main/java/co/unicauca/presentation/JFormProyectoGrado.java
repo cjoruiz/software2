@@ -4,14 +4,14 @@
  */
 package co.unicauca.presentation;
 
+import static co.unicauca.presentation.GUIDocenteFrame.userRepository;
 import co.unicauca.solid.access.Factory;
-import co.unicauca.solid.access.FormatoARepository;
-import co.unicauca.solid.access.IFormatoARepository;
+import co.unicauca.solid.access.FilePGRepository;
 import co.unicauca.solid.access.IProyectoGradoRepository;
 import co.unicauca.solid.access.IUserRepository;
-import co.unicauca.solid.domain.FormatoA;
+import co.unicauca.solid.domain.FilePG;
 import co.unicauca.solid.domain.ProyectoGrado;
-import co.unicauca.solid.service.FormatoAService;
+import co.unicauca.solid.service.FilePGService;
 import co.unicauca.solid.service.ProyectoGradoService;
 import co.unicauca.solid.service.UserService;
 import co.unicauca.utilities.exeption.InvalidUserDataException;
@@ -27,15 +27,21 @@ import java.time.LocalDateTime;
 import java.util.List;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import co.unicauca.solid.access.IFilePGRepository;
 
 /**
  *
  * @author crist
  */
 public class JFormProyectoGrado extends javax.swing.JFrame {
-    IFormatoARepository formatoARepository = Factory.getInstance().getFileRepository("default");
-    FormatoAService formatoAService = new FormatoAService(formatoARepository);
-    FormatoA formatoA;
+
+    IFilePGRepository formatoARepository = Factory.getInstance().getFileRepository("default");
+    IProyectoGradoRepository proyectoRepository = Factory.getInstance().getProyectoGradoRepository("default");
+    IUserRepository userRepository = Factory.getInstance().getUserRepository("default");
+    UserService userService = new UserService(userRepository);
+    ProyectoGradoService proyectoService = new ProyectoGradoService(proyectoRepository, userService);
+    FilePGService formatoAService = new FilePGService(formatoARepository, proyectoService); // Inyección de dependencias corregida
+    FilePG formatoA;
 
     /**
      * Creates new form JFormProyectoGrado
@@ -262,79 +268,104 @@ public class JFormProyectoGrado extends javax.swing.JFrame {
 
     private void btnEnviarMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_btnEnviarMouseClicked
         if (formatoA == null) {
-        JOptionPane.showMessageDialog(this,
-            "Error: Debe cargar el Formato A (PDF) antes de enviar el proyecto",
-            "Documento requerido",
-            JOptionPane.WARNING_MESSAGE);
-        return; // Salir del método sin continuar
-    }
-        try {
-            IProyectoGradoRepository proyectoRepository = Factory.getInstance().getProyectoGradoRepository("default");
-            IUserRepository userRepository =Factory.getInstance().getUserRepository("default");
-            UserService userService=new UserService(userRepository);
-            ProyectoGradoService proyectoService = new ProyectoGradoService(proyectoRepository,userService);
+            JOptionPane.showMessageDialog(this,
+                    "Error: Debe cargar el Formato A (PDF) antes de enviar el proyecto",
+                    "Documento requerido",
+                    JOptionPane.WARNING_MESSAGE);
+            return;
+        }
 
-            // Crear nuevo proyecto
+        try {
+
+            // Crear nuevo proyecto con los campos actualizados
             ProyectoGrado proyecto = new ProyectoGrado();
             proyecto.setTitulo(txtTituloP.getText());
-            proyecto.setModalidad(ProyectoGrado.Modalidad.INVESTIGACION.getValor());
+            proyecto.setModalidad(combModalidad.getSelectedItem().toString());
             proyecto.setDirectorEmail(txtDirector.getText());
-            proyecto.setCodirectorEmail(txtCoodirector.getText());
+            proyecto.setCodirectorEmail(txtCoodirector.getText().isEmpty() ? null : txtCoodirector.getText());
             proyecto.setEstudianteEmail(txtEstudiante.getText());
             proyecto.setObjetivoGeneral(txtObjGeneral.getText());
             proyecto.setObjetivosEspecificos(txtObjespecifico.getText());
-            proyecto.setEstadoActual(ProyectoGrado.Estado.EN_PRIMERA_EVALUACION_FORMATO_A.getValor());
+            proyecto.setEstadoActual("EN_PRIMERA_EVALUACION_FORMATO_A");
             proyecto.setNumeroIntento(1);
             proyecto.setFechaCreacion(LocalDateTime.now());
             proyecto.setFechaUltimaActualizacion(LocalDateTime.now());
-            proyecto.setRechazadoDefinitivamente(ProyectoGrado.RechazoDefinitivo.NO.getValor());
+            proyecto.setRechazadoDefinitivamente('N');
+            proyecto.setObservacionesEvaluacion(null); // Nuevo campo
 
             int idProyecto = proyectoService.crearProyecto(proyecto);
             System.out.println("Proyecto creado con ID: " + idProyecto);
 
             if (idProyecto != -1) {
-                // CORRECCIÓN: Crear un NUEVO objeto FormatoA con todos los datos
-                FormatoA nuevoFormatoA = new FormatoA();
+                // Crear un NUEVO objeto FilePG con los campos actualizados
+                FilePG nuevoFormatoA = new FilePG();
                 nuevoFormatoA.setIdProyecto(idProyecto);
-                nuevoFormatoA.setNombre(formatoA.getNombre()); // Usar el nombre del formatoA global
-                nuevoFormatoA.setContenido(formatoA.getContenido()); // Usar el contenido del formatoA global
-                nuevoFormatoA.setTieneCartaEmpresa(formatoA.getTieneCartaEmpresa()); // Usar el valor del formatoA global
+                nuevoFormatoA.setTipoDocumento("FORMATO_A");
+                nuevoFormatoA.setVersion(1);
+                nuevoFormatoA.setContenido(formatoA.getContenido());
+                nuevoFormatoA.setNombreArchivo(formatoA.getNombreArchivo());
+
+                // Extraer extensión del nombre del archivo
+                String nombreArchivo = formatoA.getNombreArchivo();
+                String extension = "";
+                int ultimoPunto = nombreArchivo.lastIndexOf('.');
+                if (ultimoPunto > 0) {
+                    extension = nombreArchivo.substring(ultimoPunto + 1);
+                }
+                nuevoFormatoA.setExtension(extension);
+
+                // Tamaño del contenido
+                nuevoFormatoA.setTamaño((long) formatoA.getContenido().length);
                 nuevoFormatoA.setFechaSubida(LocalDateTime.now());
                 nuevoFormatoA.setEstado("PENDIENTE");
+                nuevoFormatoA.setObservaciones(null);
 
-                // NO establecer el ID manualmente - la base de datos lo generará automáticamente
-                // nuevoFormatoA.setIdFormato(null); // ← Esto es lo que causa el error
-                int id = formatoAService.subirFormatoA(nuevoFormatoA);
+                // Usar el nuevo método específico para subir Formato A
+                int id = formatoAService.subirFormatoA(idProyecto,
+                        nuevoFormatoA.getContenido(),
+                        nuevoFormatoA.getNombreArchivo());
 
                 if (id != -1) {
                     JOptionPane.showMessageDialog(this,
                             "PDF guardado en base de datos con ID: " + id
                             + "\nTamaño: " + nuevoFormatoA.getContenido().length + " bytes"
-                            + "\nNombre: " + formatoA.getNombre());
+                            + "\nNombre: " + formatoA.getNombreArchivo()
+                            + "\nTipo: " + nuevoFormatoA.getTipoDocumento());
 
-                    // Opcional: Listar todos los documentos
-                    System.out.println("\nDocumentos en la base de datos:");
-                    List<FormatoA> documentos = formatoAService.obtenerTodosFormatosA();
-                    documentos.forEach(System.out::println);
+                    // Opcional: Obtener documentos del proyecto para verificar
+                    System.out.println("\nDocumentos del proyecto " + idProyecto + ":");
+                    try {
+                        List<FilePG> documentos = formatoAService.obtenerDocumentosPorProyecto(idProyecto);
+                        documentos.forEach(doc -> {
+                            System.out.println("- ID: " + doc.getIdDocumento()
+                                    + ", Tipo: " + doc.getTipoDocumento()
+                                    + ", Archivo: " + doc.getNombreArchivo());
+                        });
+                    } catch (UserNotFoundException | InvalidUserDataException e) {
+                        System.out.println("No se pudieron obtener los documentos: " + e.getMessage());
+                    }
+
                     this.dispose();
                 } else {
                     JOptionPane.showMessageDialog(this, "Error al guardar el PDF en la base de datos");
                 }
             }
-        }catch (InvalidUserDataException e) {
-                    JOptionPane.showMessageDialog(this,
+        } catch (InvalidUserDataException e) {
+            JOptionPane.showMessageDialog(this,
                     "Error de validación: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
-            // Mostrar errores al usuario
-        }
-        // Manejar recurso no encontrado
-         catch (Exception e) {
-             JOptionPane.showMessageDialog(this,
+        } catch (UserNotFoundException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Usuario no encontrado: " + e.getMessage(),
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this,
                     "Error inesperado: " + e.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
-            // Manejar otros errores
+            e.printStackTrace();
         }
     }//GEN-LAST:event_btnEnviarMouseClicked
 
@@ -342,7 +373,6 @@ public class JFormProyectoGrado extends javax.swing.JFrame {
         FileDialog fileDialog = new FileDialog((Frame) null, "Seleccionar archivo PDF", FileDialog.LOAD);
         fileDialog.setFilenameFilter(new FilenameFilter() {
             public boolean accept(File dir, String name) {
-                // Filtrar solo archivos PDF
                 return name.toLowerCase().endsWith(".pdf");
             }
         });
@@ -357,18 +387,35 @@ public class JFormProyectoGrado extends javax.swing.JFrame {
             try {
                 // Leer archivo PDF
                 byte[] contenidoPDF = Files.readAllBytes(Paths.get(rutaPDF));
-                String nombreArchivo = "formatoA";
-//                String nombreArchivo = Paths.get(rutaPDF).getFileName().toString();
+                String nombreArchivo = selectedFileName; // Usar el nombre real del archivo
 
-                // Crear objeto Documento
-                formatoA = new FormatoA();
-
-                formatoA.setNombre(nombreArchivo);
+                // Crear objeto FilePG temporal solo con los datos básicos necesarios
+                formatoA = new FilePG();
+                formatoA.setIdProyecto(null); // Se asignará después cuando se cree el proyecto
+                formatoA.setTipoDocumento("FORMATO_A");
+                formatoA.setVersion(1);
                 formatoA.setContenido(contenidoPDF);
-                formatoA.setTieneCartaEmpresa('N'); // Sí tiene carta empresa
+                formatoA.setNombreArchivo(nombreArchivo);
+
+                // Extraer extensión
+                String extension = "";
+                int ultimoPunto = nombreArchivo.lastIndexOf('.');
+                if (ultimoPunto > 0) {
+                    extension = nombreArchivo.substring(ultimoPunto + 1);
+                }
+                formatoA.setExtension(extension);
+
+                formatoA.setTamaño((long) contenidoPDF.length);
                 formatoA.setFechaSubida(LocalDateTime.now());
-                formatoA.setEstado("PENDIENTE");// TODO add your handling code here:
-                txtSelectPdf.setText(Paths.get(rutaPDF).getFileName().toString());
+                formatoA.setEstado("PENDIENTE");
+                formatoA.setObservaciones(null);
+
+                // Actualizar la etiqueta con el nombre real del archivo
+                txtSelectPdf.setText(nombreArchivo);
+
+                System.out.println("Archivo cargado: " + nombreArchivo
+                        + " (" + contenidoPDF.length + " bytes)");
+
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(this,
                         "Error al leer el archivo: " + e.getMessage());
@@ -379,7 +426,6 @@ public class JFormProyectoGrado extends javax.swing.JFrame {
                 e.printStackTrace();
             }
         }
-
     }//GEN-LAST:event_btnAbjPdfMouseClicked
 
     private void btnCancelarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelarActionPerformed

@@ -7,7 +7,9 @@ package co.unicauca.solid.domain;
 import java.time.LocalDateTime;
 
 /**
- *
+ * Entidad principal que maneja los proyectos de grado
+ * Controla los estados, intentos y toda la información del proyecto
+ * 
  * @author crist
  */
 public class ProyectoGrado {
@@ -24,17 +26,21 @@ public class ProyectoGrado {
     private LocalDateTime fechaCreacion;
     private LocalDateTime fechaUltimaActualizacion;
     private Character rechazadoDefinitivamente;
+    private String observacionesEvaluacion; // Nuevo campo para observaciones del coordinador
     
     // Constructores
     public ProyectoGrado() {
+        this.numeroIntento = 1;
+        this.estadoActual = Estado.EN_PRIMERA_EVALUACION_FORMATO_A.getValor();
+        this.rechazadoDefinitivamente = RechazoDefinitivo.NO.getValor();
+        this.fechaCreacion = LocalDateTime.now();
+        this.fechaUltimaActualizacion = LocalDateTime.now();
     }
     
-    public ProyectoGrado(Integer idProyecto, String titulo, String modalidad, 
-                        String directorEmail, String codirectorEmail, String estudianteEmail,
-                        String objetivoGeneral, String objetivosEspecificos, String estadoActual,
-                        Integer numeroIntento, LocalDateTime fechaCreacion, 
-                        LocalDateTime fechaUltimaActualizacion, Character rechazadoDefinitivamente) {
-        this.idProyecto = idProyecto;
+    public ProyectoGrado(String titulo, String modalidad, String directorEmail, 
+                        String codirectorEmail, String estudianteEmail,
+                        String objetivoGeneral, String objetivosEspecificos) {
+        this();
         this.titulo = titulo;
         this.modalidad = modalidad;
         this.directorEmail = directorEmail;
@@ -42,11 +48,6 @@ public class ProyectoGrado {
         this.estudianteEmail = estudianteEmail;
         this.objetivoGeneral = objetivoGeneral;
         this.objetivosEspecificos = objetivosEspecificos;
-        this.estadoActual = estadoActual;
-        this.numeroIntento = numeroIntento;
-        this.fechaCreacion = fechaCreacion;
-        this.fechaUltimaActualizacion = fechaUltimaActualizacion;
-        this.rechazadoDefinitivamente = rechazadoDefinitivamente;
     }
     
     // Getters y Setters
@@ -64,6 +65,7 @@ public class ProyectoGrado {
     
     public void setTitulo(String titulo) {
         this.titulo = titulo;
+        this.actualizarFechaModificacion();
     }
     
     public String getModalidad() {
@@ -72,6 +74,7 @@ public class ProyectoGrado {
     
     public void setModalidad(String modalidad) {
         this.modalidad = modalidad;
+        this.actualizarFechaModificacion();
     }
     
     public String getDirectorEmail() {
@@ -80,6 +83,7 @@ public class ProyectoGrado {
     
     public void setDirectorEmail(String directorEmail) {
         this.directorEmail = directorEmail;
+        this.actualizarFechaModificacion();
     }
     
     public String getCodirectorEmail() {
@@ -88,6 +92,7 @@ public class ProyectoGrado {
     
     public void setCodirectorEmail(String codirectorEmail) {
         this.codirectorEmail = codirectorEmail;
+        this.actualizarFechaModificacion();
     }
     
     public String getEstudianteEmail() {
@@ -96,6 +101,7 @@ public class ProyectoGrado {
     
     public void setEstudianteEmail(String estudianteEmail) {
         this.estudianteEmail = estudianteEmail;
+        this.actualizarFechaModificacion();
     }
     
     public String getObjetivoGeneral() {
@@ -104,6 +110,7 @@ public class ProyectoGrado {
     
     public void setObjetivoGeneral(String objetivoGeneral) {
         this.objetivoGeneral = objetivoGeneral;
+        this.actualizarFechaModificacion();
     }
     
     public String getObjetivosEspecificos() {
@@ -112,6 +119,7 @@ public class ProyectoGrado {
     
     public void setObjetivosEspecificos(String objetivosEspecificos) {
         this.objetivosEspecificos = objetivosEspecificos;
+        this.actualizarFechaModificacion();
     }
     
     public String getEstadoActual() {
@@ -120,6 +128,7 @@ public class ProyectoGrado {
     
     public void setEstadoActual(String estadoActual) {
         this.estadoActual = estadoActual;
+        this.actualizarFechaModificacion();
     }
     
     public Integer getNumeroIntento() {
@@ -128,6 +137,7 @@ public class ProyectoGrado {
     
     public void setNumeroIntento(Integer numeroIntento) {
         this.numeroIntento = numeroIntento;
+        this.actualizarFechaModificacion();
     }
     
     public LocalDateTime getFechaCreacion() {
@@ -152,6 +162,16 @@ public class ProyectoGrado {
     
     public void setRechazadoDefinitivamente(Character rechazadoDefinitivamente) {
         this.rechazadoDefinitivamente = rechazadoDefinitivamente;
+        this.actualizarFechaModificacion();
+    }
+    
+    public String getObservacionesEvaluacion() {
+        return observacionesEvaluacion;
+    }
+    
+    public void setObservacionesEvaluacion(String observacionesEvaluacion) {
+        this.observacionesEvaluacion = observacionesEvaluacion;
+        this.actualizarFechaModificacion();
     }
     
     // Enumeraciones
@@ -187,8 +207,10 @@ public class ProyectoGrado {
     
     public enum Estado {
         EN_PRIMERA_EVALUACION_FORMATO_A("EN_PRIMERA_EVALUACION_FORMATO_A", "En primera evaluación formato A"),
-        FORMATO_A_RECHAZADO("FORMATO_A_RECHAZADO", "Formato A rechazado"),
+        EN_SEGUNDA_EVALUACION_FORMATO_A("EN_SEGUNDA_EVALUACION_FORMATO_A", "En segunda evaluación formato A"),
+        EN_TERCERA_EVALUACION_FORMATO_A("EN_TERCERA_EVALUACION_FORMATO_A", "En tercera evaluación formato A"),
         FORMATO_A_APROBADO("FORMATO_A_APROBADO", "Formato A aprobado"),
+        FORMATO_A_RECHAZADO("FORMATO_A_RECHAZADO", "Formato A rechazado"),
         EN_EVALUACION_FORMATO_B("EN_EVALUACION_FORMATO_B", "En evaluación formato B"),
         FORMATO_B_RECHAZADO("FORMATO_B_RECHAZADO", "Formato B rechazado"),
         FORMATO_B_APROBADO("FORMATO_B_APROBADO", "Formato B aprobado"),
@@ -238,23 +260,142 @@ public class ProyectoGrado {
         }
     }
     
-    // Métodos utilitarios
+    // Métodos de negocio - Lógica principal del proyecto
+    
+    /**
+     * Determina si el proyecto puede tener un nuevo intento
+     */
     public boolean puedeReintentar() {
-        return numeroIntento < 3 && rechazadoDefinitivamente != RechazoDefinitivo.SI.getValor();
+        return numeroIntento < 3 && !estaRechazadoDefinitivamente();
     }
     
-    public void incrementarIntento() {
-        if (puedeReintentar()) {
-            numeroIntento++;
+    /**
+     * Incrementa el número de intento y actualiza el estado correspondiente
+     */
+    public void procesarReintentoFormatoA() {
+        if (!puedeReintentar()) {
+            throw new IllegalStateException("El proyecto no puede reintentar más veces");
+        }
+        
+        numeroIntento++;
+        
+        switch (numeroIntento) {
+            case 2:
+                this.estadoActual = Estado.EN_SEGUNDA_EVALUACION_FORMATO_A.getValor();
+                break;
+            case 3:
+                this.estadoActual = Estado.EN_TERCERA_EVALUACION_FORMATO_A.getValor();
+                break;
+        }
+        
+        this.actualizarFechaModificacion();
+    }
+    
+    /**
+     * Aprueba el formato A y cambia el estado
+     */
+    public void aprobarFormatoA() {
+        this.estadoActual = Estado.FORMATO_A_APROBADO.getValor();
+        this.actualizarFechaModificacion();
+    }
+    
+    /**
+     * Rechaza el formato A. Si es el tercer intento, marca como rechazado definitivo
+     */
+    public void rechazarFormatoA(String observaciones) {
+        this.observacionesEvaluacion = observaciones;
+        
+        if (numeroIntento >= 3) {
+            marcarRechazoDefinitivo();
+        } else {
+            this.estadoActual = Estado.FORMATO_A_RECHAZADO.getValor();
+        }
+        
+        this.actualizarFechaModificacion();
+    }
+    
+    /**
+     * Marca el proyecto como rechazado definitivamente
+     */
+    public void marcarRechazoDefinitivo() {
+        this.rechazadoDefinitivamente = RechazoDefinitivo.SI.getValor();
+        this.estadoActual = Estado.RECHAZADO_DEFINITIVO.getValor();
+        this.actualizarFechaModificacion();
+    }
+    
+    /**
+     * Verifica si el proyecto está rechazado definitivamente
+     */
+    public boolean estaRechazadoDefinitivamente() {
+        return RechazoDefinitivo.SI.getValor().equals(rechazadoDefinitivamente);
+    }
+    
+    /**
+     * Obtiene el estado actual como enum
+     */
+    public Estado getEstadoActualEnum() {
+        return Estado.fromValor(estadoActual);
+    }
+    
+    /**
+     * Obtiene la modalidad como enum
+     */
+    public Modalidad getModalidadEnum() {
+        return Modalidad.fromValor(modalidad);
+    }
+    
+    /**
+     * Verifica si el proyecto requiere carta de empresa (Práctica Profesional)
+     */
+    public boolean requiereCartaEmpresa() {
+        return Modalidad.PRACTICA_PROFESIONAL.getValor().equals(modalidad);
+    }
+    
+    /**
+     * Verifica si el proyecto está en evaluación de formato A
+     */
+    public boolean estaEnEvaluacionFormatoA() {
+        return estadoActual.contains("EVALUACION_FORMATO_A");
+    }
+    
+    /**
+     * Obtiene el mensaje de estado para mostrar al usuario
+     */
+    public String getEstadoDescriptivo() {
+        try {
+            return Estado.fromValor(estadoActual).getDescripcion();
+        } catch (IllegalArgumentException e) {
+            return "Estado desconocido";
         }
     }
     
-    public void marcarRechazoDefinitivo() {
-        this.rechazadoDefinitivamente = RechazoDefinitivo.SI.getValor();
+    /**
+     * Actualiza automáticamente la fecha de última modificación
+     */
+    private void actualizarFechaModificacion() {
+        this.fechaUltimaActualizacion = LocalDateTime.now();
     }
     
-    public boolean estaRechazadoDefinitivamente() {
-        return RechazoDefinitivo.SI.getValor().equals(rechazadoDefinitivamente);
+    /**
+     * Valida si el proyecto tiene todos los datos mínimos requeridos
+     */
+    public boolean esValido() {
+        return titulo != null && !titulo.trim().isEmpty() &&
+               modalidad != null && !modalidad.trim().isEmpty() &&
+               directorEmail != null && !directorEmail.trim().isEmpty() &&
+               estudianteEmail != null && !estudianteEmail.trim().isEmpty() &&
+               objetivoGeneral != null && !objetivoGeneral.trim().isEmpty();
+    }
+    
+    /**
+     * Obtiene información resumida del proyecto
+     */
+    public String getResumen() {
+        return String.format("Proyecto: %s - Estado: %s - Intento: %d/%d", 
+                           titulo != null ? titulo : "Sin título",
+                           getEstadoDescriptivo(),
+                           numeroIntento,
+                           3);
     }
     
     @Override
@@ -264,7 +405,6 @@ public class ProyectoGrado {
                 ", titulo='" + titulo + '\'' +
                 ", modalidad='" + modalidad + '\'' +
                 ", directorEmail='" + directorEmail + '\'' +
-                ", codirectorEmail='" + codirectorEmail + '\'' +
                 ", estudianteEmail='" + estudianteEmail + '\'' +
                 ", estadoActual='" + estadoActual + '\'' +
                 ", numeroIntento=" + numeroIntento +
