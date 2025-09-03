@@ -11,6 +11,6 @@ package co.unicauca.utilities.exeption;
 
 public class InvalidUserDataException extends Exception {
     public InvalidUserDataException(String message) {
-        super("Datos inválidos: " + message);
+        super("Datos inválidos: \n" + message);
     }
 }

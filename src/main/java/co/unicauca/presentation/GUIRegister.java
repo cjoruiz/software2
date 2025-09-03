@@ -91,7 +91,7 @@ public class GUIRegister extends javax.swing.JPanel {
 
         lbtextEmail.setText("E-MAIL (******@unicauca.edu.co)");
 
-        programBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "INGENIERIA SISTEMAS", "INGENIERIA ELECTRONICA", "AUTOMATICA INDUSTRIAL", "TELEMATICA" }));
+        programBox.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "INGENIERIA_SISTEMAS", "INGENIERIA_ELECTRONICA", "AUTOMATICA_INDUSTRIAL", "TECNOLOGIA_TELEMATICA" }));
 
         jLabel7.setText("TIPO DE USUARIO");
 
@@ -262,13 +262,23 @@ public class GUIRegister extends javax.swing.JPanel {
         try {
             userService = new UserService(userRepository);
             userService.registerUser(newUser);
+            if ("ESTUDIANTE".equals(newUser.getRol())) {
+                System.out.println("panel estudiante");
+                new GUIEstudianteFrame(userRepository, newUser).setVisible(true);
+                container.dispose();
+
+            } else if ("DOCENTE".equals(newUser.getRol())) {
+                System.out.println("panle docente");
+                new GUIDocenteFrame(userRepository, newUser).setVisible(true);
+                container.dispose();
+            }
         } catch (UserAlreadyExistsException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
                     "usuario duplicado",
                     JOptionPane.WARNING_MESSAGE);
         } catch (InvalidUserDataException ex) {
             JOptionPane.showMessageDialog(this, ex.getMessage(),
-                    "usuario duplicado",
+                    "Datos invalidos",
                     JOptionPane.WARNING_MESSAGE);
         } catch (Exception ex) {
 
@@ -276,20 +286,7 @@ public class GUIRegister extends javax.swing.JPanel {
                     "Error inesperado: " + ex.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
-        }
-
-                    if ("ESTUDIANTE".equals(newUser.getRol())) {
-                    System.out.println("panel estudiante");
-                    new GUIEstudianteFrame(userRepository,newUser).setVisible(true);
-                    container.dispose();
-
-                    } else if ("DOCENTE".equals(newUser.getRol())) {
-                        System.out.println("panle docente");
-                        new GUIDocenteFrame(userRepository,newUser).setVisible(true);
-                        container.dispose();
-                    }
-//                    loginPanel();
-       
+        }  
     }//GEN-LAST:event_jButton1MouseClicked
 
     private void passwRegTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passwRegTextActionPerformed

@@ -11,6 +11,8 @@ import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.LoginException;
 import co.unicauca.utilities.exeption.UserAlreadyExistsException;
 import co.unicauca.utilities.exeption.UserNotFoundException;
+import co.unicauca.utilities.security.PasswordValidator;
+import co.unicauca.utilities.validators.ValidationUtil;
 import java.util.List;
 
 /**
@@ -24,12 +26,6 @@ public class UserService {
         this.userRepository = userRepository;
     }
     
-    /**
-     * Registra un nuevo usuario
-     * @param user Usuario a registrar
-     * @throws UserAlreadyExistsException si el usuario ya existe
-     * @throws InvalidUserDataException si los datos son inválidos
-     */
     public void registerUser(User user) throws UserAlreadyExistsException, InvalidUserDataException {
         // Validar datos
         validateUser(user);
@@ -37,7 +33,7 @@ public class UserService {
         // Verificar si el usuario ya existe
         User existingUser = userRepository.findByEmail(user.getEmail());
         if (existingUser != null) {
-            throw new UserAlreadyExistsException(user.getEmail());
+            throw new UserAlreadyExistsException("El usuario con email " + user.getEmail() + " ya existe");
         }
         
         // Intentar guardar
@@ -47,48 +43,27 @@ public class UserService {
         }
     }
     
-    /**
-     * Autentica un usuario
-     * @param email Email del usuario
-     * @param password Contraseña
-     * @return Usuario autenticado
-     * @throws LoginException si las credenciales son incorrectas
-     * @throws InvalidUserDataException si los datos son inválidos
-     */
     public User login(String email, String password) throws LoginException, InvalidUserDataException {
-        // Validar datos de entrada
-        if (email == null || email.trim().isEmpty()) {
-            throw new InvalidUserDataException("Email requerido");
-        }
-        if (password == null || password.trim().isEmpty()) {
-            throw new InvalidUserDataException("Contraseña requerida");
-        }
+        // Validar datos de entrada usando ValidationUtil
+        ValidationUtil.validarEmail(email, "email");
+        ValidationUtil.validarNoVacio(password, "contraseña");
         
         // Buscar usuario
         User user = userRepository.findByEmail(email);
         if (user == null) {
-            throw new LoginException("Email o contraseña incorrectos");
+            throw new LoginException("Correo no encontrado");
         }
         
         // Validar contraseña
-        if (!((UserRepository)userRepository).validateLogin(email, password)) {
-            throw new LoginException("Email o contraseña incorrectos");
+        if (!userRepository.validateLogin(email, password)) {
+            throw new LoginException("Contraseña incorrecta");
         }
         
         return user;
     }
     
-    /**
-     * Busca un usuario por email
-     * @param email Email del usuario
-     * @return Usuario encontrado
-     * @throws UserNotFoundException si no se encuentra el usuario
-     * @throws InvalidUserDataException si el email es inválido
-     */
-    public User findByEmail(String email) throws UserNotFoundException, InvalidUserDataException {
-        if (email == null || email.trim().isEmpty()) {
-            throw new InvalidUserDataException("Email requerido");
-        }
+    public  User findByEmail(String email) throws UserNotFoundException, InvalidUserDataException {
+        ValidationUtil.validarEmail(email, "email:");
         
         User user = userRepository.findByEmail(email);
         if (user == null) {
@@ -98,33 +73,15 @@ public class UserService {
         return user;
     }
     
-    /**
-     * Obtiene usuarios por rol
-     * @param role Rol a buscar
-     * @return Lista de usuarios
-     * @throws InvalidUserDataException si el rol es inválido
-     */
     public List<User> getUsersByRole(String role) throws InvalidUserDataException {
-        if (role == null || role.trim().isEmpty()) {
-            throw new InvalidUserDataException("Rol requerido");
-        }
+        ValidationUtil.validarNoVacio(role, "rol");
         return userRepository.findByRole(role);
     }
     
-    /**
-     * Obtiene todos los usuarios
-     * @return Lista de todos los usuarios
-     */
     public List<User> getAllUsers() {
         return userRepository.list();
     }
     
-    /**
-     * Actualiza un usuario existente
-     * @param user Usuario con datos actualizados
-     * @throws UserNotFoundException si el usuario no existe
-     * @throws InvalidUserDataException si los datos son inválidos
-     */
     public void updateUser(User user) throws UserNotFoundException, InvalidUserDataException {
         validateUser(user);
         
@@ -133,65 +90,36 @@ public class UserService {
             throw new UserNotFoundException(user.getEmail());
         }
         
-        boolean updated = userRepository.save(user); // Asumiendo que save hace update si existe
+        boolean updated = userRepository.save(user);
         if (!updated) {
             throw new RuntimeException("Error al actualizar el usuario");
         }
     }
     
-    /**
-     * Elimina un usuario
-     * @param email Email del usuario a eliminar
-     * @throws UserNotFoundException si el usuario no existe
-     * @throws InvalidUserDataException si el email es inválido
-     */
-    public void deleteUser(String email) throws UserNotFoundException, InvalidUserDataException {
-        if (email == null || email.trim().isEmpty()) {
-            throw new InvalidUserDataException("Email requerido");
-        }
-        
-        User user = userRepository.findByEmail(email);
-        if (user == null) {
-            throw new UserNotFoundException(email);
-        }
-        
-        // Implementar método delete en el repositorio
-        // userRepository.delete(email);
-    }
-    
-    /**
-     * Valida los datos de un usuario
-     * @param user Usuario a validar
-     * @throws InvalidUserDataException si los datos son inválidos
-     */
     private void validateUser(User user) throws InvalidUserDataException {
-        if (user == null) {
-            throw new InvalidUserDataException("Usuario no puede ser null");
+        ValidationUtil.validarNoNulo(user, "usuario");
+        
+        // Validar email usando ValidationUtil
+        ValidationUtil.validarEmail(user.getEmail(), "email");
+        
+        // Validar contraseña
+        if (user.getPassword() == null) {
+            throw new InvalidUserDataException("Contraseña requerida");
         }
         
-        if (user.getEmail() == null || user.getEmail().trim().isEmpty()) {
-            throw new InvalidUserDataException("Email requerido");
+        if (!PasswordValidator.isValid(user.getPassword())) {
+            throw new InvalidUserDataException(PasswordValidator.getValidationDetails(user.getPassword()));
         }
         
-        if (!isValidEmail(user.getEmail())) {
-            throw new InvalidUserDataException("Formato de email inválido");
-        }
-        
-        if (user.getPassword() == null || user.getPassword().length() < 6) {
-            throw new InvalidUserDataException("Contraseña debe tener al menos 6 caracteres");
-        }
-        
-        if (user.getNombres() == null || user.getNombres().trim().isEmpty()) {
-            throw new InvalidUserDataException("Nombre requerido");
-        }
+        // Validar otros campos usando ValidationUtil
+        ValidationUtil.validarLongitud(user.getNombres(), "nombre", 2, 50);
+        ValidationUtil.validarLongitud(user.getApellidos(), "apellido", 2, 50);
+        ValidationUtil.validarLongitud(user.getPrograma(), "programa", 2, 100);
+        ValidationUtil.validarLongitud(user.getRol(), "rol", 2, 20);
     }
     
-    /**
-     * Valida formato de email básico
-     * @param email Email a validar
-     * @return true si es válido
-     */
-    private boolean isValidEmail(String email) {
-        return email.contains("@") && email.contains(".");
-    }
+    // Método eliminado porque ya no es necesario (la validación está en ValidationUtil)
+    // private boolean isValidEmail(String email) {
+    //     return email != null && email.endsWith("@unicauca.edu.co");
+    // }
 }

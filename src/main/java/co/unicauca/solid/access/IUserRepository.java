@@ -10,6 +10,7 @@ import java.util.List;
  */
 public interface IUserRepository {
     boolean save(User user);
+    boolean validateLogin(String email, String password);
     User findByEmail(String email);
     List<User> findByRole(String role);
     List<User> list();

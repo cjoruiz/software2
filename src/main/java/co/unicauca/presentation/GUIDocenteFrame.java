@@ -4,16 +4,22 @@
  */
 package co.unicauca.presentation;
 
+import co.unicauca.solid.access.FormatoARepository;
 import co.unicauca.solid.access.IUserRepository;
 import co.unicauca.solid.domain.User;
+import java.awt.FileDialog;
+import java.awt.Frame;
+import javax.swing.JOptionPane;
 
 /**
  *
  * @author crist
  */
 public class GUIDocenteFrame extends javax.swing.JFrame {
+    FormatoARepository localFileRepository = new FormatoARepository();
     static IUserRepository userRepository;
     static User user;
+
     /**
      * Creates new form GUIDocenteFrame
      */
@@ -43,6 +49,8 @@ public class GUIDocenteFrame extends javax.swing.JFrame {
         profName = new javax.swing.JLabel();
         profEmail = new javax.swing.JLabel();
         progText = new javax.swing.JLabel();
+        jButton1 = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
         jMenuBar1 = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem3 = new javax.swing.JMenuItem();
@@ -97,6 +105,20 @@ public class GUIDocenteFrame extends javax.swing.JFrame {
                 .addContainerGap())
         );
 
+        jButton1.setText("jButton1");
+        jButton1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton1MouseClicked(evt);
+            }
+        });
+
+        jButton2.setText("crear Proyecto Grado");
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton2MouseClicked(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -105,13 +127,26 @@ public class GUIDocenteFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(479, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                .addGap(134, 134, 134)
+                .addComponent(jButton2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jButton1)
+                .addGap(267, 267, 267))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(480, Short.MAX_VALUE))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(210, 210, 210)
+                        .addComponent(jButton1))
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(225, 225, 225)
+                        .addComponent(jButton2)))
+                .addContainerGap(232, Short.MAX_VALUE))
         );
 
         jMenu1.setText("Opciones");
@@ -179,6 +214,41 @@ public class GUIDocenteFrame extends javax.swing.JFrame {
         this.dispose(); 
     }//GEN-LAST:event_jMenuItem3ActionPerformed
 
+    private void jButton1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton1MouseClicked
+// Usar FileDialog nativo del sistema operativo
+        FileDialog fileDialog = new FileDialog((Frame) null, "Guardar PDF como", FileDialog.SAVE);
+        fileDialog.setFile("formatoA.pdf"); // Nombre por defecto
+        fileDialog.setVisible(true);
+
+        String selectedDirectory = fileDialog.getDirectory();
+        String selectedFileName = fileDialog.getFile();
+
+        if (selectedDirectory != null && selectedFileName != null) {
+            String rutaCarpeta = selectedDirectory;
+            String nombreArchivo = selectedFileName;
+
+            // Asegurarse de que tenga la extensión .pdf si no la tiene
+            if (!nombreArchivo.toLowerCase().endsWith(".pdf")) {
+                nombreArchivo += ".pdf";
+            }
+
+            // ✅ Así usas tu método con 3 parámetros
+            boolean exito = localFileRepository.guardarEnDisco(21, rutaCarpeta, nombreArchivo);
+
+            if (exito) {
+                JOptionPane.showMessageDialog(this, "PDF guardado en: " + rutaCarpeta + nombreArchivo);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                        "Error de seguridad/permisos: intente guardar en una carpeta como descarga o documentos.\n");
+            }
+        }        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton1MouseClicked
+
+    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
+        var formPG= new JFormProyectoGrado();
+        formPG.setVisible(true);
+    }//GEN-LAST:event_jButton2MouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -215,6 +285,8 @@ public class GUIDocenteFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
