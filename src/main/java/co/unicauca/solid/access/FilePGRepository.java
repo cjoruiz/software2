@@ -17,9 +17,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Repository para FilePG - Maneja únicamente la persistencia de documentos
- * Se enfoca en almacenar y recuperar archivos de diferentes tipos
- * 
+ * Repository para FilePG - Maneja únicamente la persistencia de documentos Se
+ * enfoca en almacenar y recuperar archivos de diferentes tipos
+ *
  * @author crist
  */
 public class FilePGRepository implements IFilePGRepository {
@@ -30,20 +30,17 @@ public class FilePGRepository implements IFilePGRepository {
 
     @Override
     public int insertarDocumento(FilePG documento) {
-        String sql = """
-            INSERT INTO documentos_proyecto (
-                id_proyecto, tipo_documento, version, 
-                contenido, nombre_archivo, extension, tamaño,
-                fecha_subida, estado, observaciones
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """;
+        String sql = "INSERT INTO documentos_proyecto ("
+                + "id_proyecto, tipo_documento, version, "
+                + "contenido, nombre_archivo, extension, tamaño, "
+                + "fecha_subida, estado, observaciones"
+                + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         int maxReintentos = 3;
         int reintentos = 0;
 
         while (reintentos < maxReintentos) {
-            try (Connection connection = getConnection(); 
-                 PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
                 // Obtener la siguiente versión si no está establecida
                 if (documento.getVersion() == null) {
@@ -69,9 +66,9 @@ public class FilePGRepository implements IFilePGRepository {
                         if (rs.next()) {
                             int idGenerado = rs.getInt(1);
                             // Marcar versiones anteriores como obsoletas
-                            marcarVersionesAnterioresObsoletas(documento.getIdProyecto(), 
-                                                            documento.getTipoDocumento(), 
-                                                            documento.getVersion());
+                            marcarVersionesAnterioresObsoletas(documento.getIdProyecto(),
+                                    documento.getTipoDocumento(),
+                                    documento.getVersion());
                             return idGenerado;
                         }
                     }
@@ -108,8 +105,7 @@ public class FilePGRepository implements IFilePGRepository {
         String sql = "SELECT * FROM documentos_proyecto WHERE id_proyecto = ? AND tipo_documento = ? ORDER BY version DESC";
         List<FilePG> documentos = new ArrayList<>();
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
             pstmt.setString(2, tipoDocumento);
@@ -134,8 +130,7 @@ public class FilePGRepository implements IFilePGRepository {
         String sql = "SELECT * FROM documentos_proyecto WHERE id_proyecto = ? ORDER BY tipo_documento, version DESC";
         List<FilePG> documentos = new ArrayList<>();
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
 
@@ -156,14 +151,11 @@ public class FilePGRepository implements IFilePGRepository {
      * Obtiene la última versión de un documento específico
      */
     public FilePG obtenerUltimaVersionDocumento(Integer idProyecto, String tipoDocumento) {
-        String sql = """
-            SELECT * FROM documentos_proyecto 
-            WHERE id_proyecto = ? AND tipo_documento = ? 
-            ORDER BY version DESC LIMIT 1
-            """;
+        String sql = "SELECT * FROM documentos_proyecto "
+                + "WHERE id_proyecto = ? AND tipo_documento = ? "
+                + "ORDER BY version DESC LIMIT 1";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
             pstmt.setString(2, tipoDocumento);
@@ -185,8 +177,7 @@ public class FilePGRepository implements IFilePGRepository {
     public FilePG obtenerDocumentoPorId(int id) {
         String sql = "SELECT * FROM documentos_proyecto WHERE id_documento = ?";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, id);
             try (ResultSet rs = pstmt.executeQuery()) {
@@ -207,9 +198,7 @@ public class FilePGRepository implements IFilePGRepository {
         String sql = "SELECT * FROM documentos_proyecto ORDER BY id_proyecto, tipo_documento, version DESC";
         List<FilePG> documentos = new ArrayList<>();
 
-        try (Connection connection = getConnection(); 
-             Statement stmt = connection.createStatement(); 
-             ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection connection = getConnection(); Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
 
             while (rs.next()) {
                 documentos.add(mapearDocumento(rs));
@@ -228,8 +217,7 @@ public class FilePGRepository implements IFilePGRepository {
     public boolean actualizarEstadoDocumento(int idDocumento, String nuevoEstado, String observaciones) {
         String sql = "UPDATE documentos_proyecto SET estado = ?, observaciones = ? WHERE id_documento = ?";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, nuevoEstado);
             pstmt.setString(2, observaciones);
@@ -250,8 +238,7 @@ public class FilePGRepository implements IFilePGRepository {
     public boolean existeDocumentoTipo(Integer idProyecto, String tipoDocumento) {
         String sql = "SELECT COUNT(*) as total FROM documentos_proyecto WHERE id_proyecto = ? AND tipo_documento = ?";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
             pstmt.setString(2, tipoDocumento);
@@ -275,8 +262,7 @@ public class FilePGRepository implements IFilePGRepository {
     private int obtenerSiguienteVersion(Integer idProyecto, String tipoDocumento) {
         String sql = "SELECT MAX(version) as max_version FROM documentos_proyecto WHERE id_proyecto = ? AND tipo_documento = ?";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
             pstmt.setString(2, tipoDocumento);
@@ -296,17 +282,16 @@ public class FilePGRepository implements IFilePGRepository {
     }
 
     /**
-     * Marca versiones anteriores como obsoletas cuando se sube una nueva versión
+     * Marca versiones anteriores como obsoletas cuando se sube una nueva
+     * versión
      */
     private void marcarVersionesAnterioresObsoletas(Integer idProyecto, String tipoDocumento, Integer versionActual) {
-        String sql = """
-            UPDATE documentos_proyecto 
-            SET estado = 'OBSOLETO' 
-            WHERE id_proyecto = ? AND tipo_documento = ? AND version < ? AND estado != 'OBSOLETO'
-            """;
+        String sql = "UPDATE documentos_proyecto "
+                + "SET estado = 'OBSOLETO' "
+                + "WHERE id_proyecto = ? AND tipo_documento = ? "
+                + "AND version < ? AND estado != 'OBSOLETO'";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
             pstmt.setString(2, tipoDocumento);
@@ -323,8 +308,7 @@ public class FilePGRepository implements IFilePGRepository {
     public boolean eliminarDocumento(int id) {
         String sql = "DELETE FROM documentos_proyecto WHERE id_documento = ?";
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, id);
             int affectedRows = pstmt.executeUpdate();
@@ -439,36 +423,34 @@ public class FilePGRepository implements IFilePGRepository {
      * Inicializa la base de datos con la nueva estructura de documentos
      */
     private void initDatabase() {
-        String sql = """
-            CREATE TABLE IF NOT EXISTS documentos_proyecto (
-                id_documento INTEGER PRIMARY KEY AUTOINCREMENT,
-                id_proyecto INTEGER NOT NULL,
-                tipo_documento TEXT NOT NULL CHECK (tipo_documento IN (
-                    'FORMATO_A', 
-                    'CARTA_EMPRESA', 
-                    'FORMATO_B', 
-                    'MONOGRAFIA', 
-                    'ANEXOS', 
-                    'PRESENTACION'
-                )),
-                version INTEGER NOT NULL DEFAULT 1,
-                contenido BLOB NOT NULL,
-                nombre_archivo TEXT NOT NULL,
-                extension TEXT,
-                tamaño INTEGER DEFAULT 0,
-                fecha_subida TEXT NOT NULL,
-                estado TEXT DEFAULT 'PENDIENTE' CHECK (estado IN (
-                    'PENDIENTE', 
-                    'EN_REVISION', 
-                    'APROBADO', 
-                    'RECHAZADO', 
-                    'OBSOLETO'
-                )),
-                observaciones TEXT,
-                UNIQUE(id_proyecto, tipo_documento, version),
-                FOREIGN KEY (id_proyecto) REFERENCES proyectos_grado(id_proyecto) ON DELETE CASCADE
-            )
-            """;
+        String sql = "CREATE TABLE IF NOT EXISTS documentos_proyecto ("
+                + "    id_documento INTEGER PRIMARY KEY AUTOINCREMENT, "
+                + "    id_proyecto INTEGER NOT NULL, "
+                + "    tipo_documento TEXT NOT NULL CHECK (tipo_documento IN ( "
+                + "        'FORMATO_A', "
+                + "        'CARTA_EMPRESA', "
+                + "        'FORMATO_B', "
+                + "        'MONOGRAFIA', "
+                + "        'ANEXOS', "
+                + "        'PRESENTACION' "
+                + "    )), "
+                + "    version INTEGER NOT NULL DEFAULT 1, "
+                + "    contenido BLOB NOT NULL, "
+                + "    nombre_archivo TEXT NOT NULL, "
+                + "    extension TEXT, "
+                + "    tamaño INTEGER DEFAULT 0, "
+                + "    fecha_subida TEXT NOT NULL, "
+                + "    estado TEXT DEFAULT 'PENDIENTE' CHECK (estado IN ( "
+                + "        'PENDIENTE', "
+                + "        'EN_REVISION', "
+                + "        'APROBADO', "
+                + "        'RECHAZADO', "
+                + "        'OBSOLETO' "
+                + "    )), "
+                + "    observaciones TEXT, "
+                + "    UNIQUE(id_proyecto, tipo_documento, version), "
+                + "    FOREIGN KEY (id_proyecto) REFERENCES proyectos_grado(id_proyecto) ON DELETE CASCADE "
+                + ")";
 
         // Crear índices para mejorar el rendimiento
         String[] indices = {
@@ -478,12 +460,11 @@ public class FilePGRepository implements IFilePGRepository {
             "CREATE INDEX IF NOT EXISTS idx_documentos_version ON documentos_proyecto(id_proyecto, tipo_documento, version)"
         };
 
-        try (Connection connection = getConnection(); 
-             Statement stmt = connection.createStatement()) {
+        try (Connection connection = getConnection(); Statement stmt = connection.createStatement()) {
 
             // Crear tabla principal
             stmt.execute(sql);
-            
+
             // Crear índices
             for (String indice : indices) {
                 try {
@@ -509,13 +490,12 @@ public class FilePGRepository implements IFilePGRepository {
     /**
      * Métodos específicos para los tipos de documento según los requisitos
      */
-
     /**
      * Sube un nuevo Formato A
      */
     public int subirFormatoA(Integer idProyecto, byte[] contenido, String nombreArchivo) {
-        FilePG formatoA = new FilePG(idProyecto, FilePG.TipoDocumento.FORMATO_A.getValor(), 
-                                     contenido, nombreArchivo);
+        FilePG formatoA = new FilePG(idProyecto, FilePG.TipoDocumento.FORMATO_A.getValor(),
+                contenido, nombreArchivo);
         return insertarDocumento(formatoA);
     }
 
@@ -523,8 +503,8 @@ public class FilePGRepository implements IFilePGRepository {
      * Sube una carta de empresa (requerida para práctica profesional)
      */
     public int subirCartaEmpresa(Integer idProyecto, byte[] contenido, String nombreArchivo) {
-        FilePG cartaEmpresa = new FilePG(idProyecto, FilePG.TipoDocumento.CARTA_EMPRESA.getValor(), 
-                                        contenido, nombreArchivo);
+        FilePG cartaEmpresa = new FilePG(idProyecto, FilePG.TipoDocumento.CARTA_EMPRESA.getValor(),
+                contenido, nombreArchivo);
         return insertarDocumento(cartaEmpresa);
     }
 
@@ -562,7 +542,7 @@ public class FilePGRepository implements IFilePGRepository {
     public boolean validarDocumentosRequeridos(Integer idProyecto, boolean esPracticaProfesional) {
         // Verificar que tenga formato A
         boolean tieneFormatoA = existeDocumentoTipo(idProyecto, FilePG.TipoDocumento.FORMATO_A.getValor());
-        
+
         if (!tieneFormatoA) {
             return false;
         }
@@ -579,18 +559,15 @@ public class FilePGRepository implements IFilePGRepository {
      * Obtiene estadísticas de documentos por proyecto
      */
     public String obtenerEstadisticasProyecto(Integer idProyecto) {
-        String sql = """
-            SELECT tipo_documento, COUNT(*) as cantidad, MAX(version) as version_actual
-            FROM documentos_proyecto 
-            WHERE id_proyecto = ? 
-            GROUP BY tipo_documento
-            """;
+        String sql = "SELECT tipo_documento, COUNT(*) as cantidad, MAX(version) as version_actual "
+                + "FROM documentos_proyecto "
+                + "WHERE id_proyecto = ? "
+                + "GROUP BY tipo_documento";
 
         StringBuilder estadisticas = new StringBuilder();
         estadisticas.append("Estadísticas de documentos del proyecto ").append(idProyecto).append(":\n");
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setInt(1, idProyecto);
 
@@ -599,10 +576,10 @@ public class FilePGRepository implements IFilePGRepository {
                     String tipo = rs.getString("tipo_documento");
                     int cantidad = rs.getInt("cantidad");
                     int versionActual = rs.getInt("version_actual");
-                    
+
                     estadisticas.append("- ").append(tipo).append(": ")
-                              .append(cantidad).append(" versión(es), actual v")
-                              .append(versionActual).append("\n");
+                            .append(cantidad).append(" versión(es), actual v")
+                            .append(versionActual).append("\n");
                 }
             }
 

@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 /**
  * Servicio para gestión de proyectos de grado
@@ -523,7 +524,7 @@ public class ProyectoGradoService {
         List<ProyectoGrado> todosProyectos = obtenerTodosProyectos();
         return todosProyectos.stream()
                 .filter(p -> estado.equals(p.getEstadoActual()))
-                .toList();
+                .collect(Collectors.toList());
     }
 
     /**

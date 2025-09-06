@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import java.net.URL?>
+
+<VBox xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="co.unicauca.presentation.RegisterController" 
+      spacing="20.0" style="-fx-background-color: white;">
+   <padding>
+      <Insets bottom="30.0" left="40.0" right="40.0" top="20.0" />
+   </padding>
+   
+   <Label text="CREAR NUEVO USUARIO" textAlignment="CENTER">
+      <font>
+         <Font name="System Bold" size="16.0" />
+      </font>
+   </Label>
+   
+   <!-- Campos del formulario -->
+   <VBox spacing="15.0">
+      <!-- Nombre -->
+      <VBox spacing="5.0">
+         <Label text="NOMBRE" />
+         <TextField fx:id="nameText" promptText="Ingrese su nombre" />
+         <Separator style="-fx-stroke: black;" />
+      </VBox>
+      
+      <!-- Apellido -->
+      <VBox spacing="5.0">
+         <Label text="APELLIDO" />
+         <TextField fx:id="lastNameText" promptText="Ingrese su apellido" />
+         <Separator style="-fx-stroke: black;" />
+      </VBox>
+      
+      <!-- Celular -->
+      <VBox spacing="5.0">
+         <Label text="CELULAR" />
+         <TextField fx:id="celText" promptText="Ingrese su número celular" />
+         <Separator style="-fx-stroke: black;" />
+      </VBox>
+      
+      <!-- Programa y Tipo de Usuario -->
+      <HBox spacing="20.0">
+         <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+            <Label text="PROGRAMA" />
+            <ComboBox fx:id="programBox" />
+         </VBox>
+         <VBox spacing="5.0" HBox.hgrow="ALWAYS">
+            <Label text="TIPO DE USUARIO" />
+            <ComboBox fx:id="userTypeBox" />
+         </VBox>
+      </HBox>
+      
+      <!-- Email -->
+      <VBox spacing="5.0">
+         <Label text="E-MAIL (******@unicauca.edu.co)" />
+         <TextField fx:id="emailText" promptText="ejemplo@unicauca.edu.co" />
+         <Separator style="-fx-stroke: black;" />
+      </VBox>
+      
+      <!-- Contraseña -->
+      <VBox spacing="5.0">
+         <Label text="CONTRASEÑA" />
+         <Label text="(mínimo 6 caracteres, 1 mayúscula, 1 número, 1 carácter especial)" 
+                style="-fx-font-size: 10px; -fx-text-fill: gray;" />
+         <PasswordField fx:id="passwRegText" promptText="Ingrese su contraseña" />
+      </VBox>
+      
+      <!-- Botones -->
+      <HBox spacing="20.0" alignment="CENTER">
+         <Button fx:id="registerButton" mnemonicParsing="false" onAction="#handleRegister" 
+                 prefWidth="120.0" text="REGISTRARSE" 
+                 style="-fx-background-color: #007bff; -fx-text-fill: white;" />
+         <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleGoToLogin" 
+                 prefWidth="120.0" text="INICIAR SESIÓN" 
+                 style="-fx-background-color: #6c757d; -fx-text-fill: white;" />
+      </HBox>
+   </VBox>
+</VBox>
