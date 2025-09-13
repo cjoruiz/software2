@@ -270,9 +270,18 @@ public class FilePGRepository implements IFilePGRepository {
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     int maxVersion = rs.getInt("max_version");
-                    return maxVersion + 1;
+                    // Si no hay registros, getInt devuelve 0
+                    if (rs.wasNull()) {
+                        System.out.println("DEBUG: No se encontraron versiones para proyecto " + idProyecto + " y tipo " + tipoDocumento + ". Iniciando en versión 1.");
+                        return 1;
+                    } else {
+                        int nextVersion = maxVersion + 1;
+                        System.out.println("DEBUG: Versión máxima encontrada: " + maxVersion + ". Asignando próxima versión: " + nextVersion);
+                        return nextVersion;
+                    }
                 }
             }
+            System.out.println("DEBUG: No se pudo obtener el ResultSet. Iniciando en versión 1.");
             return 1; // Primera versión
 
         } catch (SQLException e) {

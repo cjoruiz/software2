@@ -3,6 +3,8 @@ package co.unicauca.solid.service;
 import co.unicauca.solid.access.IProyectoGradoRepository;
 import co.unicauca.solid.access.ProyectoGradoRepository;
 import co.unicauca.solid.domain.ProyectoGrado;
+import co.unicauca.solid.domain.User;
+import co.unicauca.solid.domain.enums.EstadoEnum;
 import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.UserNotFoundException;
 import co.unicauca.utilities.validators.ValidationUtil;
@@ -19,7 +21,7 @@ import java.util.stream.Collectors;
 public class ProyectoGradoService {
 
     private static final Logger LOGGER = Logger.getLogger(ProyectoGradoService.class.getName());
-    
+
     private final IProyectoGradoRepository proyectoRepository;
     private final UserService userService;
 
@@ -29,13 +31,12 @@ public class ProyectoGradoService {
     }
 
     // ========== MÉTODOS PRINCIPALES DE CRUD ==========
-
     /**
      * Crea un nuevo proyecto de grado con validaciones completas
      */
     public int crearProyecto(ProyectoGrado proyecto) throws InvalidUserDataException, UserNotFoundException {
         validarProyecto(proyecto);
-        
+
         // Establecer valores por defecto
         if (proyecto.getFechaCreacion() == null) {
             proyecto.setFechaCreacion(LocalDateTime.now());
@@ -47,20 +48,20 @@ public class ProyectoGradoService {
             proyecto.setNumeroIntento(1);
         }
         if (proyecto.getEstadoActual() == null) {
-            proyecto.setEstadoActual(ProyectoGrado.Estado.EN_PRIMERA_EVALUACION_FORMATO_A.getValor());
+            proyecto.setEstadoActual(EstadoEnum.EN_PRIMERA_EVALUACION_FORMATO_A.getValor());
         }
         if (proyecto.getRechazadoDefinitivamente() == 0) {
             proyecto.setRechazadoDefinitivamente('N');
         }
-        
+
         int idGenerado = proyectoRepository.insertarProyecto(proyecto);
-        
+
         if (idGenerado > 0) {
             LOGGER.info("Proyecto creado exitosamente con ID: " + idGenerado);
             // Simular envío de email de notificación
             simularEnvioEmailCreacion(proyecto);
         }
-        
+
         return idGenerado;
     }
 
@@ -115,7 +116,7 @@ public class ProyectoGradoService {
     public List<ProyectoGrado> obtenerProyectosPendientesEvaluacion() throws UserNotFoundException {
         ProyectoGradoRepository repo = (ProyectoGradoRepository) proyectoRepository;
         List<ProyectoGrado> proyectos = repo.obtenerProyectosPendientesEvaluacion();
-        
+
         if (proyectos.isEmpty()) {
             throw new UserNotFoundException("No hay proyectos pendientes de evaluación");
         }
@@ -165,73 +166,72 @@ public class ProyectoGradoService {
     }
 
     // ========== MÉTODOS ESPECÍFICOS PARA EVALUACIÓN DE FORMATO A ==========
-
     /**
-     * Evalúa un formato A - Método principal para coordinadores
-     * Requisito 3: Evaluación del coordinador
+     * Evalúa un formato A - Método principal para coordinadores Requisito 3:
+     * Evaluación del coordinador
      */
-    public boolean evaluarFormatoA(int idProyecto, boolean aprobado, String observaciones, String coordinadorEmail) 
+    public boolean evaluarFormatoA(int idProyecto, boolean aprobado, String observaciones, String coordinadorEmail)
             throws UserNotFoundException, InvalidUserDataException {
-        
+
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
         ValidationUtil.validarEmail(coordinadorEmail, "email del coordinador");
-        
+
         // Verificar que el proyecto existe
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
-        
+
         // Verificar que el coordinador existe
         userService.findByEmail(coordinadorEmail);
-        
+
         // Verificar que el proyecto está en un estado que permite evaluación
         if (!puedeSerEvaluado(proyecto.getEstadoActual())) {
             throw new InvalidUserDataException("El proyecto no está en un estado que permita evaluación");
         }
-        
+
         ProyectoGradoRepository repo = (ProyectoGradoRepository) proyectoRepository;
         boolean resultado = repo.evaluarFormatoA(idProyecto, aprobado, observaciones);
-        
+
         if (resultado) {
             // Simular envío de email de notificación
             simularEnvioEmailEvaluacion(proyecto, aprobado, observaciones, coordinadorEmail);
-            
+
             String accion = aprobado ? "aprobado" : "rechazado";
             LOGGER.info("Formato A " + accion + " para proyecto ID: " + idProyecto + " por coordinador: " + coordinadorEmail);
         }
-        
+
         return resultado;
     }
 
     /**
-     * Procesa un reintento de formato A después de rechazo
-     * Requisito 4: Nueva versión tras rechazo
+     * Procesa un reintento de formato A después de rechazo Requisito 4: Nueva
+     * versión tras rechazo
      */
     public boolean procesarReintentoFormatoA(int idProyecto) throws UserNotFoundException, InvalidUserDataException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        
+
         // Verificar que el proyecto existe
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
-        
+
         // Verificar que puede reintentar
         if (!proyecto.puedeReintentar()) {
             throw new InvalidUserDataException("El proyecto ha agotado sus intentos permitidos (máximo 3)");
         }
-        
+
         // Verificar estado actual
-        if (!ProyectoGrado.Estado.FORMATO_A_RECHAZADO.getValor().equals(proyecto.getEstadoActual())) {
+        if (!EstadoEnum.FORMATO_A_RECHAZADO.getValor().equals(proyecto.getEstadoActual())) {
             throw new InvalidUserDataException("Solo se puede reintentar un proyecto con formato A rechazado");
         }
-        
+
         ProyectoGradoRepository repo = (ProyectoGradoRepository) proyectoRepository;
         boolean resultado = repo.procesarReintentoFormatoA(idProyecto);
-        
+
         if (resultado) {
-            LOGGER.info("Reintento procesado para proyecto ID: " + idProyecto + 
-                       ", nuevo intento: " + (proyecto.getNumeroIntento() + 1));
-            
+            LOGGER.info("Reintento procesado para proyecto ID: " + idProyecto
+                    + ", nuevo intento: " + (proyecto.getNumeroIntento() + 1));
+
             // Simular email de notificación de reintento
             simularEnvioEmailReintento(proyecto);
         }
-        
+
         return resultado;
     }
 
@@ -242,7 +242,7 @@ public class ProyectoGradoService {
             throws UserNotFoundException, InvalidUserDataException {
 
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        
+
         // Verificar que el proyecto existe
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
         if (proyecto == null) {
@@ -250,13 +250,13 @@ public class ProyectoGradoService {
         }
 
         validarEstado(nuevoEstado);
-        
+
         boolean resultado = proyectoRepository.actualizarEstadoProyecto(idProyecto, nuevoEstado);
-        
+
         if (resultado) {
             LOGGER.info("Estado del proyecto " + idProyecto + " actualizado a: " + nuevoEstado);
         }
-        
+
         return resultado;
     }
 
@@ -265,7 +265,7 @@ public class ProyectoGradoService {
      */
     public boolean marcarRechazoDefinitivo(int idProyecto) throws UserNotFoundException, InvalidUserDataException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        
+
         // Verificar que el proyecto existe
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
         if (proyecto == null) {
@@ -273,18 +273,17 @@ public class ProyectoGradoService {
         }
 
         boolean resultado = proyectoRepository.marcarRechazoDefinitivo(idProyecto);
-        
+
         if (resultado) {
             LOGGER.warning("Proyecto " + idProyecto + " marcado como rechazado definitivamente");
             // Simular email de notificación de rechazo definitivo
             simularEnvioEmailRechazoDefinitivo(proyecto);
         }
-        
+
         return resultado;
     }
 
     // ========== MÉTODOS DE CONSULTA Y VALIDACIÓN ==========
-
     /**
      * Verifica si un proyecto puede reintentar formato A
      */
@@ -297,20 +296,20 @@ public class ProyectoGradoService {
      * Verifica si un proyecto puede ser evaluado
      */
     public boolean puedeSerEvaluado(String estadoActual) {
-        return estadoActual != null && (
-            estadoActual.equals(ProyectoGrado.Estado.EN_PRIMERA_EVALUACION_FORMATO_A.getValor()) ||
-            estadoActual.equals(ProyectoGrado.Estado.EN_SEGUNDA_EVALUACION_FORMATO_A.getValor()) ||
-            estadoActual.equals(ProyectoGrado.Estado.EN_TERCERA_EVALUACION_FORMATO_A.getValor())
-        );
+        return estadoActual != null && (estadoActual.equals(EstadoEnum.EN_PRIMERA_EVALUACION_FORMATO_A.getValor())
+                || estadoActual.equals(EstadoEnum.EN_SEGUNDA_EVALUACION_FORMATO_A.getValor())
+                || estadoActual.equals(EstadoEnum.EN_TERCERA_EVALUACION_FORMATO_A.getValor()));
     }
 
     /**
-     * Obtiene el estado legible de un proyecto para estudiantes
-     * Requisito 5: Vista del estado para estudiantes
+     * Obtiene el estado legible de un proyecto para estudiantes Requisito 5:
+     * Vista del estado para estudiantes
      */
     public String obtenerEstadoLegible(String estado) {
-        if (estado == null) return "Estado desconocido";
-        
+        if (estado == null) {
+            return "Estado desconocido";
+        }
+
         switch (estado) {
             case "EN_PRIMERA_EVALUACION_FORMATO_A":
                 return "En primera evaluación formato A";
@@ -342,7 +341,6 @@ public class ProyectoGradoService {
     }
 
     // ========== MÉTODOS DE VALIDACIÓN PRIVADOS ==========
-
     /**
      * Valida un proyecto completo con todas sus reglas de negocio
      */
@@ -368,16 +366,23 @@ public class ProyectoGradoService {
             errores.append("- Modalidad no válida. Debe ser INVESTIGACION o PRACTICA_PROFESIONAL\n");
         }
 
-        // Validar emails y existencia de usuarios
-        validarEmailUsuario(proyecto.getDirectorEmail(), "director", errores);
-        
-        // Codirector es opcional
-        if (proyecto.getCodirectorEmail() != null && !proyecto.getCodirectorEmail().trim().isEmpty()) {
-            validarEmailUsuario(proyecto.getCodirectorEmail(), "codirector", errores);
+        // Validar que si el director es OCASIONAL, debe tener codirector
+        User director = userService.findByEmail(proyecto.getDirectorEmail());
+        if ("OCASIONAL".equals(director.getTipoDocente())) {
+            if (proyecto.getCodirectorEmail() == null || proyecto.getCodirectorEmail().trim().isEmpty()) {
+                errores.append("- El director es ocasional y debe tener un codirector asignado.\n");
+            } else {
+                // Validar que el codirector exista
+                try {
+                    userService.findByEmail(proyecto.getCodirectorEmail());
+                } catch (UserNotFoundException e) {
+                    errores.append("- Codirector no encontrado con email: ").append(proyecto.getCodirectorEmail()).append("\n");
+                }
+            }
         }
-        
-        validarEmailUsuario(proyecto.getEstudianteEmail(), "estudiante", errores);
 
+        validarEmailUsuario(proyecto.getEstudiante1Email(), "estudiante1", errores);
+        validarEmailUsuario(proyecto.getEstudiante2Email(), "estudiante2", errores);
         // Validar objetivos usando ValidationUtil
         try {
             ValidationUtil.validarLongitud(proyecto.getObjetivoGeneral(), "objetivo general", 20, 1000);
@@ -405,6 +410,11 @@ public class ProyectoGradoService {
      * Valida email de usuario y su existencia
      */
     private void validarEmailUsuario(String email, String rol, StringBuilder errores) {
+        // Si el email es null, no hay nada que validar
+        if (email == null) {
+            return;
+        }
+
         try {
             ValidationUtil.validarEmail(email, "email del " + rol);
             userService.findByEmail(email);
@@ -412,7 +422,7 @@ public class ProyectoGradoService {
             errores.append("- Email del ").append(rol).append(" no válido: ").append(e.getMessage()).append("\n");
         } catch (UserNotFoundException e) {
             errores.append("- ").append(rol.substring(0, 1).toUpperCase()).append(rol.substring(1))
-                   .append(" no encontrado con email: ").append(email).append("\n");
+                    .append(" no encontrado con email: ").append(email).append("\n");
         }
     }
 
@@ -423,7 +433,7 @@ public class ProyectoGradoService {
         ValidationUtil.validarNoVacio(estado, "estado");
 
         try {
-            ProyectoGrado.Estado.fromValor(estado);
+            EstadoEnum.fromValor(estado);
         } catch (IllegalArgumentException e) {
             throw new InvalidUserDataException("Estado no válido: " + estado + ". Los estados válidos son: "
                     + getEstadosValidos());
@@ -435,39 +445,38 @@ public class ProyectoGradoService {
      */
     private String getEstadosValidos() {
         StringBuilder estados = new StringBuilder();
-        for (ProyectoGrado.Estado estado : ProyectoGrado.Estado.values()) {
+        for (EstadoEnum estado : EstadoEnum.values()) {
             estados.append(estado.getValor()).append(", ");
         }
         return estados.substring(0, estados.length() - 2);
     }
 
     // ========== MÉTODOS DE SIMULACIÓN DE EMAILS ==========
-
     /**
      * Simula envío de email cuando se crea un proyecto
      */
     private void simularEnvioEmailCreacion(ProyectoGrado proyecto) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         LOGGER.info("ASUNTO: Nuevo proyecto de grado creado");
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudianteEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
         if (proyecto.getCodirectorEmail() != null) {
             LOGGER.info("CC: " + proyecto.getCodirectorEmail());
         }
-        LOGGER.info("MENSAJE: Se ha creado exitosamente el proyecto '" + proyecto.getTitulo() + 
-                   "' y está en evaluación de formato A (intento " + proyecto.getNumeroIntento() + ")");
+        LOGGER.info("MENSAJE: Se ha creado exitosamente el proyecto '" + proyecto.getTitulo()
+                + "' y está en evaluación de formato A (intento " + proyecto.getNumeroIntento() + ")");
         LOGGER.info("=== FIN SIMULACIÓN EMAIL ===");
     }
 
     /**
-     * Simula envío de email cuando se evalúa un formato A
-     * Requisito 3: Notificación tras evaluación
+     * Simula envío de email cuando se evalúa un formato A Requisito 3:
+     * Notificación tras evaluación
      */
-    private void simularEnvioEmailEvaluacion(ProyectoGrado proyecto, boolean aprobado, 
-                                           String observaciones, String coordinadorEmail) {
+    private void simularEnvioEmailEvaluacion(ProyectoGrado proyecto, boolean aprobado,
+            String observaciones, String coordinadorEmail) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         String resultado = aprobado ? "APROBADO" : "RECHAZADO";
         LOGGER.info("ASUNTO: Evaluación de Formato A - " + resultado);
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudianteEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
         if (proyecto.getCodirectorEmail() != null) {
             LOGGER.info("CC: " + proyecto.getCodirectorEmail());
         }
@@ -486,13 +495,13 @@ public class ProyectoGradoService {
     private void simularEnvioEmailReintento(ProyectoGrado proyecto) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         LOGGER.info("ASUNTO: Nuevo intento de Formato A autorizado");
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudianteEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
         if (proyecto.getCodirectorEmail() != null) {
             LOGGER.info("CC: " + proyecto.getCodirectorEmail());
         }
         LOGGER.info("PROYECTO: " + proyecto.getTitulo());
-        LOGGER.info("MENSAJE: Se ha autorizado el intento " + (proyecto.getNumeroIntento() + 1) + 
-                   " para el Formato A. Pueden subir una nueva versión.");
+        LOGGER.info("MENSAJE: Se ha autorizado el intento " + (proyecto.getNumeroIntento() + 1)
+                + " para el Formato A. Pueden subir una nueva versión.");
         LOGGER.info("=== FIN SIMULACIÓN EMAIL ===");
     }
 
@@ -502,25 +511,24 @@ public class ProyectoGradoService {
     private void simularEnvioEmailRechazoDefinitivo(ProyectoGrado proyecto) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         LOGGER.info("ASUNTO: PROYECTO RECHAZADO DEFINITIVAMENTE");
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudianteEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
         if (proyecto.getCodirectorEmail() != null) {
             LOGGER.info("CC: " + proyecto.getCodirectorEmail());
         }
         LOGGER.info("PROYECTO: " + proyecto.getTitulo());
-        LOGGER.info("MENSAJE: El proyecto ha sido rechazado definitivamente después de 3 intentos. " +
-                   "El estudiante debe comenzar un nuevo proyecto desde cero.");
+        LOGGER.info("MENSAJE: El proyecto ha sido rechazado definitivamente después de 3 intentos. "
+                + "El estudiante debe comenzar un nuevo proyecto desde cero.");
         LOGGER.info("=== FIN SIMULACIÓN EMAIL ===");
     }
 
     // ========== MÉTODOS ADICIONALES PARA COORDINADORES ==========
-
     /**
      * Obtiene proyectos por estado específico
      */
-    public List<ProyectoGrado> obtenerProyectosPorEstado(String estado) 
+    public List<ProyectoGrado> obtenerProyectosPorEstado(String estado)
             throws InvalidUserDataException, UserNotFoundException {
         validarEstado(estado);
-        
+
         List<ProyectoGrado> todosProyectos = obtenerTodosProyectos();
         return todosProyectos.stream()
                 .filter(p -> estado.equals(p.getEstadoActual()))
@@ -533,11 +541,11 @@ public class ProyectoGradoService {
     public String obtenerEstadisticasGenerales() {
         try {
             List<ProyectoGrado> todosProyectos = proyectoRepository.obtenerTodosProyectos();
-            
+
             StringBuilder stats = new StringBuilder();
             stats.append("=== ESTADÍSTICAS GENERALES ===\n");
             stats.append("Total de proyectos: ").append(todosProyectos.size()).append("\n");
-            
+
             // Contar por modalidades
             long investigacion = todosProyectos.stream()
                     .filter(p -> "INVESTIGACION".equals(p.getModalidad()))
@@ -545,13 +553,13 @@ public class ProyectoGradoService {
             long practicaProfesional = todosProyectos.stream()
                     .filter(p -> "PRACTICA_PROFESIONAL".equals(p.getModalidad()))
                     .count();
-            
+
             stats.append("Proyectos de Investigación: ").append(investigacion).append("\n");
             stats.append("Proyectos de Práctica Profesional: ").append(practicaProfesional).append("\n");
-            
+
             // Contar por estados
             stats.append("\n=== DISTRIBUCIÓN POR ESTADOS ===\n");
-            for (ProyectoGrado.Estado estado : ProyectoGrado.Estado.values()) {
+            for (EstadoEnum estado : EstadoEnum.values()) {
                 long count = todosProyectos.stream()
                         .filter(p -> estado.getValor().equals(p.getEstadoActual()))
                         .count();
@@ -559,9 +567,9 @@ public class ProyectoGradoService {
                     stats.append(obtenerEstadoLegible(estado.getValor())).append(": ").append(count).append("\n");
                 }
             }
-            
+
             return stats.toString();
-            
+
         } catch (Exception e) {
             return "Error obteniendo estadísticas: " + e.getMessage();
         }

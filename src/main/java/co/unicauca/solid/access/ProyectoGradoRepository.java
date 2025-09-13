@@ -13,6 +13,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -33,12 +35,12 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
     @Override
     public int insertarProyecto(ProyectoGrado proyecto) {
         String sql = "INSERT INTO proyectos_grado ("
-                + "    titulo, modalidad, director_email, codirector_email, "
-                + "    estudiante_email, objetivo_general, objetivos_especificos, "
-                + "    estado_actual, numero_intento, fecha_creacion, "
-                + "    fecha_ultima_actualizacion, rechazado_definitivamente,"
-                + "    observaciones_evaluacion"
-                + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                + "titulo, modalidad, director_email, codirector_email, "
+                + "estudiante1_email, estudiante2_email, objetivo_general, objetivos_especificos, "
+                + "estado_actual, numero_intento, fecha_creacion, "
+                + "fecha_ultima_actualizacion, rechazado_definitivamente, "
+                + "observaciones_evaluacion"
+                + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
@@ -46,19 +48,18 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             pstmt.setString(2, proyecto.getModalidad());
             pstmt.setString(3, proyecto.getDirectorEmail());
             pstmt.setString(4, proyecto.getCodirectorEmail());
-            pstmt.setString(5, proyecto.getEstudianteEmail());
-            pstmt.setString(6, proyecto.getObjetivoGeneral());
-            pstmt.setString(7, proyecto.getObjetivosEspecificos());
-            pstmt.setString(8, proyecto.getEstadoActual());
-            pstmt.setInt(9, proyecto.getNumeroIntento());
-            String fechaFormateada = proyecto.getFechaCreacion().toString().replace("T", " ");
-            pstmt.setString(10, fechaFormateada);
+            pstmt.setString(5, proyecto.getEstudiante1Email());
+            pstmt.setString(6, proyecto.getEstudiante2Email());
+            pstmt.setString(7, proyecto.getObjetivoGeneral());
+            pstmt.setString(8, proyecto.getObjetivosEspecificos());
+            pstmt.setString(9, proyecto.getEstadoActual());
+            pstmt.setInt(10, proyecto.getNumeroIntento());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            pstmt.setString(11, proyecto.getFechaCreacion().format(formatter));
+            pstmt.setString(12, proyecto.getFechaUltimaActualizacion().format(formatter));
 
-            fechaFormateada = proyecto.getFechaUltimaActualizacion().toString().replace("T", " ");
-            pstmt.setString(11, fechaFormateada);
-
-            pstmt.setString(12, String.valueOf(proyecto.getRechazadoDefinitivamente()));
-            pstmt.setString(13, proyecto.getObservacionesEvaluacion());
+            pstmt.setString(13, String.valueOf(proyecto.getRechazadoDefinitivamente()));
+            pstmt.setString(14, proyecto.getObservacionesEvaluacion());
 
             int affectedRows = pstmt.executeUpdate();
 
@@ -188,13 +189,14 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
     @Override
     public boolean actualizarProyecto(ProyectoGrado proyecto) {
-        String sql = "UPDATE proyectos_grado SET "
-                + "    titulo = ?, modalidad = ?, director_email = ?, "
-                + "    codirector_email = ?, estudiante_email = ?, "
-                + "    objetivo_general = ?, objetivos_especificos = ?, "
-                + "    estado_actual = ?, numero_intento = ?, "
-                + "    fecha_ultima_actualizacion = ?, rechazado_definitivamente = ?,"
-                + "    observaciones_evaluacion = ? "
+        String sql
+                = "UPDATE proyectos_grado SET "
+                + "titulo = ?, modalidad = ?, director_email = ?, "
+                + "codirector_email = ?, estudiante1_email = ?, estudiante2_email = ?, "
+                + "objetivo_general = ?, objetivos_especificos = ?, "
+                + "estado_actual = ?, numero_intento = ?, "
+                + "fecha_ultima_actualizacion = ?, rechazado_definitivamente = ?, "
+                + "observaciones_evaluacion = ? "
                 + "WHERE id_proyecto = ?";
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -203,15 +205,17 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             pstmt.setString(2, proyecto.getModalidad());
             pstmt.setString(3, proyecto.getDirectorEmail());
             pstmt.setString(4, proyecto.getCodirectorEmail());
-            pstmt.setString(5, proyecto.getEstudianteEmail());
-            pstmt.setString(6, proyecto.getObjetivoGeneral());
-            pstmt.setString(7, proyecto.getObjetivosEspecificos());
-            pstmt.setString(8, proyecto.getEstadoActual());
-            pstmt.setInt(9, proyecto.getNumeroIntento());
-            pstmt.setTimestamp(10, Timestamp.valueOf(LocalDateTime.now()));
-            pstmt.setString(11, String.valueOf(proyecto.getRechazadoDefinitivamente()));
-            pstmt.setString(12, proyecto.getObservacionesEvaluacion());
-            pstmt.setInt(13, proyecto.getIdProyecto());
+            pstmt.setString(5, proyecto.getEstudiante1Email());
+            pstmt.setString(6, proyecto.getEstudiante2Email());
+            pstmt.setString(7, proyecto.getObjetivoGeneral());
+            pstmt.setString(8, proyecto.getObjetivosEspecificos());
+            pstmt.setString(9, proyecto.getEstadoActual());
+            pstmt.setInt(10, proyecto.getNumeroIntento());
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            pstmt.setString(11, LocalDateTime.now().format(formatter));
+            pstmt.setString(12, String.valueOf(proyecto.getRechazadoDefinitivamente()));
+            pstmt.setString(13, proyecto.getObservacionesEvaluacion());
+            pstmt.setInt(14, proyecto.getIdProyecto());
 
             int affectedRows = pstmt.executeUpdate();
             return affectedRows > 0;
@@ -310,14 +314,16 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
     @Override
     public boolean actualizarEstadoProyecto(int idProyecto, String nuevoEstado) {
-        String sql = "UPDATE proyectos_grado SET "
+        String sql = 
+                "UPDATE proyectos_grado SET "
                 + "    estado_actual = ?, fecha_ultima_actualizacion = ? "
                 + "WHERE id_proyecto = ?";
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, nuevoEstado);
-            pstmt.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            pstmt.setString(2, LocalDateTime.now().format(formatter));
             pstmt.setInt(3, idProyecto);
 
             int affectedRows = pstmt.executeUpdate();
@@ -370,30 +376,50 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
     /**
      * Mapea ResultSet a ProyectoGrado
      */
-    private ProyectoGrado mapearProyecto(ResultSet rs) throws SQLException {
+     private ProyectoGrado mapearProyecto(ResultSet rs) throws SQLException {
         ProyectoGrado proyecto = new ProyectoGrado();
         proyecto.setIdProyecto(rs.getInt("id_proyecto"));
         proyecto.setTitulo(rs.getString("titulo"));
         proyecto.setModalidad(rs.getString("modalidad"));
         proyecto.setDirectorEmail(rs.getString("director_email"));
         proyecto.setCodirectorEmail(rs.getString("codirector_email"));
-        proyecto.setEstudianteEmail(rs.getString("estudiante_email"));
+        proyecto.setEstudiante1Email(rs.getString("estudiante1_email"));
+        proyecto.setEstudiante2Email(rs.getString("estudiante2_email"));
         proyecto.setObjetivoGeneral(rs.getString("objetivo_general"));
         proyecto.setObjetivosEspecificos(rs.getString("objetivos_especificos"));
         proyecto.setEstadoActual(rs.getString("estado_actual"));
         proyecto.setNumeroIntento(rs.getInt("numero_intento"));
         proyecto.setObservacionesEvaluacion(rs.getString("observaciones_evaluacion"));
 
-        Timestamp fechaCreacion = rs.getTimestamp("fecha_creacion");
-        if (fechaCreacion != null) {
-            proyecto.setFechaCreacion(fechaCreacion.toLocalDateTime());
+        // Formato ISO para parsear fechas
+        DateTimeFormatter isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+
+        // Leer fecha_creacion como String
+        String fechaCreacionStr = rs.getString("fecha_creacion");
+        if (fechaCreacionStr != null && !fechaCreacionStr.trim().isEmpty()) {
+            try {
+                // Reemplazar espacio por 'T' para que coincida con el formato ISO
+                String isoString = fechaCreacionStr.trim().replace(' ', 'T');
+                proyecto.setFechaCreacion(LocalDateTime.parse(isoString, isoFormatter));
+            } catch (DateTimeParseException e) {
+                System.err.println("❌ Error al parsear fecha_creacion: '" + fechaCreacionStr + "'. Se usará la fecha actual.");
+                proyecto.setFechaCreacion(LocalDateTime.now());
+            }
         }
 
-        Timestamp fechaActualizacion = rs.getTimestamp("fecha_ultima_actualizacion");
-        if (fechaActualizacion != null) {
-            proyecto.setFechaUltimaActualizacion(fechaActualizacion.toLocalDateTime());
+        // Leer fecha_ultima_actualizacion como String
+        String fechaActualizacionStr = rs.getString("fecha_ultima_actualizacion");
+        if (fechaActualizacionStr != null && !fechaActualizacionStr.trim().isEmpty()) {
+            try {
+                String isoString = fechaActualizacionStr.trim().replace(' ', 'T');
+                proyecto.setFechaUltimaActualizacion(LocalDateTime.parse(isoString, isoFormatter));
+            } catch (DateTimeParseException e) {
+                System.err.println("❌ Error al parsear fecha_ultima_actualizacion: '" + fechaActualizacionStr + "'. Se usará la fecha actual.");
+                proyecto.setFechaUltimaActualizacion(LocalDateTime.now());
+            }
         }
 
+        // Manejo de rechazo definitivo
         String rechazoDef = rs.getString("rechazado_definitivamente");
         if (rechazoDef != null && !rechazoDef.isEmpty()) {
             proyecto.setRechazadoDefinitivamente(rechazoDef.charAt(0));
@@ -406,38 +432,28 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
      * Inicializa la base de datos con la nueva estructura
      */
     private void initDatabase() {
-        String sql = "CREATE TABLE IF NOT EXISTS proyectos_grado ("
-                + "    id_proyecto INTEGER PRIMARY KEY AUTOINCREMENT,"
-                + "    titulo TEXT NOT NULL,"
-                + "    modalidad TEXT NOT NULL CHECK (modalidad IN ('INVESTIGACION', 'PRACTICA_PROFESIONAL')),"
-                + "    director_email TEXT NOT NULL,"
-                + "    codirector_email TEXT,"
-                + "    estudiante_email TEXT NOT NULL,"
-                + "    objetivo_general TEXT,"
-                + "    objetivos_especificos TEXT,"
-                + "    estado_actual TEXT DEFAULT 'EN_PRIMERA_EVALUACION_FORMATO_A' CHECK (estado_actual IN ("
-                + "        'EN_PRIMERA_EVALUACION_FORMATO_A',"
-                + "        'EN_SEGUNDA_EVALUACION_FORMATO_A', "
-                + "        'EN_TERCERA_EVALUACION_FORMATO_A',"
-                + "        'FORMATO_A_APROBADO',"
-                + "        'FORMATO_A_RECHAZADO',"
-                + "        'EN_EVALUACION_FORMATO_B',"
-                + "        'FORMATO_B_RECHAZADO',"
-                + "        'FORMATO_B_APROBADO',"
-                + "        'EN_DESARROLLO',"
-                + "        'EN_EVALUACION_FINAL',"
-                + "        'APROBADO',"
-                + "        'RECHAZADO_DEFINITIVO'"
-                + "    )),"
-                + "    numero_intento INTEGER DEFAULT 1 CHECK (numero_intento BETWEEN 1 AND 3),"
-                + "    fecha_creacion TEXT NOT NULL,"
-                + "    fecha_ultima_actualizacion TEXT NOT NULL,"
-                + "    rechazado_definitivamente TEXT DEFAULT 'N' CHECK (rechazado_definitivamente IN ('S', 'N')),"
-                + "    observaciones_evaluacion TEXT,"
-                + "    FOREIGN KEY (director_email) REFERENCES usuarios(email),"
-                + "    FOREIGN KEY (codirector_email) REFERENCES usuarios(email),"
-                + "    FOREIGN KEY (estudiante_email) REFERENCES usuarios(email)"
-                + ")";
+        String sql
+                = "CREATE TABLE IF NOT EXISTS proyectos_grado (\n"
+                + "    id_proyecto INTEGER PRIMARY KEY AUTOINCREMENT,\n"
+                + "    titulo TEXT NOT NULL,\n"
+                + "    modalidad TEXT NOT NULL CHECK (modalidad IN ('INVESTIGACION', 'PRACTICA_PROFESIONAL')),\n"
+                + "    director_email TEXT NOT NULL,\n"
+                + "    codirector_email TEXT,\n"
+                + "    estudiante1_email TEXT NOT NULL,\n"
+                + "    estudiante2_email TEXT,\n"
+                + "    objetivo_general TEXT,\n"
+                + "    objetivos_especificos TEXT,\n"
+                + "    estado_actual TEXT DEFAULT 'EN_PRIMERA_EVALUACION_FORMATO_A',\n"
+                + "    numero_intento INTEGER DEFAULT 1 CHECK (numero_intento BETWEEN 1 AND 3),\n"
+                + "    fecha_creacion TEXT NOT NULL,\n"
+                + "    fecha_ultima_actualizacion TEXT NOT NULL,\n"
+                + "    rechazado_definitivamente TEXT DEFAULT 'N' CHECK (rechazado_definitivamente IN ('S', 'N')),\n"
+                + "    observaciones_evaluacion TEXT,\n"
+                + "    FOREIGN KEY (director_email) REFERENCES user(email) ON DELETE CASCADE,\n"
+                + "    FOREIGN KEY (codirector_email) REFERENCES user(email) ON DELETE CASCADE,\n"
+                + "    FOREIGN KEY (estudiante1_email) REFERENCES user(email) ON DELETE CASCADE,\n"
+                + "    FOREIGN KEY (estudiante2_email) REFERENCES user(email) ON DELETE CASCADE\n"
+                + ");";
 
         try (Connection connection = getConnection(); Statement stmt = connection.createStatement()) {
 
@@ -447,6 +463,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             Logger.getLogger(ProyectoGradoRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+
 
     /**
      * Obtiene conexión a la base de datos
