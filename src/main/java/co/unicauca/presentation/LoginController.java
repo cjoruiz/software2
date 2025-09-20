@@ -1,18 +1,12 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package co.unicauca.presentation;
 
-
 import co.unicauca.solid.access.IUserRepository;
-import co.unicauca.solid.domain.User;
+import co.unicauca.solid.domain.Usuario;
 import co.unicauca.solid.service.UserService;
 import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.LoginException;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -20,16 +14,22 @@ import javafx.stage.Stage;
 
 public class LoginController {
 
-    @FXML private TextField userText;
-    @FXML private PasswordField passwordField;
-    
+    @FXML
+    private TextField emailField;
+
+    @FXML
+    private PasswordField passwordField;
+
     private IUserRepository userRepository;
     private UserService userService;
     private Stage primaryStage;
 
     public void setUserRepository(IUserRepository userRepository) {
         this.userRepository = userRepository;
-        this.userService = new UserService(userRepository);
+    }
+
+    public void setUserService(UserService userService) {
+        this.userService = userService;
     }
 
     public void setPrimaryStage(Stage primaryStage) {
@@ -37,85 +37,76 @@ public class LoginController {
     }
 
     @FXML
-    private void handleLogin() {
+    private void handleLogin(ActionEvent event) {
+        String email = emailField.getText().trim();
+        String password = passwordField.getText();
+
         try {
-            String email = userText.getText().trim();
-            String password = passwordField.getText();
-            
-            User user = userService.login(email, password);
-            
-            showAlert(Alert.AlertType.INFORMATION, "Login Exitoso", 
-                     "Bienvenido, " + user.getNombres() + "!");
-            
-            if ("ESTUDIANTE".equals(user.getRol())) {
-                openEstudianteView(user);
-            } else if ("DOCENTE".equals(user.getRol())) {
-                openDocenteView(user);
-            }
-            
+            Usuario usuario = userService.login(email, password);
+            showAlert(Alert.AlertType.INFORMATION, "Login Exitoso", "Bienvenido, " + usuario.getNombres() + "!");
+
+            // Navegar a la pantalla correspondiente
+            loadUserDashboard(usuario);
+
         } catch (LoginException ex) {
             showAlert(Alert.AlertType.ERROR, "Error de Autenticación", ex.getMessage());
             passwordField.clear();
         } catch (InvalidUserDataException ex) {
             showAlert(Alert.AlertType.WARNING, "Datos Inválidos", ex.getMessage());
         } catch (Exception ex) {
-            showAlert(Alert.AlertType.ERROR, "Error", "Error inesperado: " + ex.getMessage());
+            showAlert(Alert.AlertType.ERROR, "Error Inesperado", ex.getMessage());
             ex.printStackTrace();
         }
     }
 
     @FXML
-    private void handleRegister() {
-        App.setRoot("RegisterView");
+    private void handleRegister(ActionEvent event) {
+        try {
+            App.setRoot("register");
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo cargar la pantalla de registro.");
+        }
     }
 
     @FXML
-    private void handleClose() {
-        System.exit(0);
+    private void handleCerrarApp(ActionEvent event) {
+        Stage stage = (Stage) emailField.getScene().getWindow();
+        stage.close();
     }
 
-    private void openEstudianteView(User user) {
+    private void loadUserDashboard(Usuario usuario) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/unicauca/mavenproject1fx/EstudianteView.fxml"));
-            Parent root = loader.load();
-            
-//            EstudianteController controller = loader.getController();
-//            controller.setUser(user);
-//            controller.setUserRepository(userRepository);
-//            controller.setPrimaryStage(primaryStage);
-//            
-            primaryStage.getScene().setRoot(root);
-            
+            String fxmlFile;
+            switch (usuario.getRol()) {
+                case "ESTUDIANTE":
+                    fxmlFile = "estudiante";
+                    break;
+                case "DOCENTE":
+                    fxmlFile = "docente";
+                    break;
+                case "COORDINADOR":
+                    fxmlFile = "coordinador";
+                    break;
+                default:
+                    showAlert(Alert.AlertType.WARNING, "Rol no soportado", "El rol de usuario no está soportado.");
+                    return;
+            }
+
+            App.setRoot(fxmlFile);
+
         } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo cargar la vista de estudiante");
             e.printStackTrace();
+            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo cargar el dashboard.");
         }
     }
 
-    private void openDocenteView(User user) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/co/unicauca/mavenproject1fx/DocenteView.fxml"));
-            Parent root = loader.load();
-            
-//            DocenteController controller = loader.getController();
-//            controller.setUser(user);
-//            controller.setUserRepository(userRepository);
-//            controller.setPrimaryStage(primaryStage);
-            
-            primaryStage.getScene().setRoot(root);
-            
-        } catch (Exception e) {
-            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo cargar la vista de docente");
-            e.printStackTrace();
-        }
-    }
-
-    private void showAlert(Alert.AlertType type, String title, String message) {
-        Alert alert = new Alert(type);
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.initOwner(primaryStage);
         alert.showAndWait();
     }
 }

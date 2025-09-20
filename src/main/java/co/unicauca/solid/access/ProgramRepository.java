@@ -142,7 +142,7 @@ public class ProgramRepository implements IProgramRepository {
                 + "    facultad TEXT DEFAULT 'Facultad de Ingeniería Electrónica y Telecomunicaciones'"
                 + ")";
 
-        String sqlUsuarios = "ALTER TABLE usuarios ADD COLUMN programa TEXT "
+        String sqlUsuarios = "ALTER TABLE user ADD COLUMN programa TEXT " // <-- ¡¡¡ CORREGIDO: 'user' en lugar de 'usuarios' !!!
                 + "CHECK (programa IN ("
                 + "    'INGENIERIA_SISTEMAS',"
                 + "    'INGENIERIA_ELECTRONICA', "
@@ -151,20 +151,13 @@ public class ProgramRepository implements IProgramRepository {
                 + "))";
 
         try (Connection connection = getConnection(); Statement stmt = connection.createStatement()) {
-
-            // Crear tabla programas
             stmt.execute(sqlProgramas);
-
-            // Intentar agregar columna programa a usuarios (puede fallar si ya existe)
             try {
                 stmt.execute(sqlUsuarios);
             } catch (SQLException e) {
                 System.out.println("La columna programa ya existe en usuarios o no se pudo agregar: " + e.getMessage());
             }
-
-            // Insertar programas por defecto si no existen
             insertarProgramasPorDefecto();
-
         } catch (SQLException ex) {
             Logger.getLogger(ProgramRepository.class.getName()).log(Level.SEVERE, null, ex);
         }

@@ -1,9 +1,11 @@
 package co.unicauca.solid.service;
 
 import co.unicauca.solid.access.IProyectoGradoRepository;
-import co.unicauca.solid.access.ProyectoGradoRepository;
+import co.unicauca.solid.domain.Coordinador;
+import co.unicauca.solid.domain.Docente;
+import co.unicauca.solid.domain.Estudiante;
 import co.unicauca.solid.domain.ProyectoGrado;
-import co.unicauca.solid.domain.User;
+import co.unicauca.solid.domain.Usuario;
 import co.unicauca.solid.domain.enums.EstadoEnum;
 import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.UserNotFoundException;
@@ -11,7 +13,6 @@ import co.unicauca.utilities.validators.ValidationUtil;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Logger;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 /**
@@ -68,7 +69,7 @@ public class ProyectoGradoService {
     /**
      * Obtiene un proyecto por su ID
      */
-    public ProyectoGrado obtenerProyecto(int idProyecto) throws UserNotFoundException {
+    public ProyectoGrado obtenerProyecto(int idProyecto) throws UserNotFoundException, InvalidUserDataException {
         ProyectoGrado proyecto = proyectoRepository.obtenerProyectoPorId(idProyecto);
         if (proyecto == null) {
             throw new UserNotFoundException("Proyecto con ID " + idProyecto + " no encontrado");
@@ -84,7 +85,10 @@ public class ProyectoGradoService {
         ValidationUtil.validarEmail(estudianteEmail, "email del estudiante");
 
         // Verificar que el estudiante existe
-        userService.findByEmail(estudianteEmail);
+        Usuario estudiante = userService.findByEmail(estudianteEmail);
+        if (!(estudiante instanceof Estudiante)) {
+            throw new InvalidUserDataException("El email " + estudianteEmail + " no corresponde a un estudiante.");
+        }
 
         List<ProyectoGrado> proyectos = proyectoRepository.obtenerProyectosPorEstudiante(estudianteEmail);
         if (proyectos.isEmpty()) {
@@ -101,7 +105,10 @@ public class ProyectoGradoService {
         ValidationUtil.validarEmail(directorEmail, "email del director");
 
         // Verificar que el director existe
-        userService.findByEmail(directorEmail);
+        Usuario director = userService.findByEmail(directorEmail);
+        if (!(director instanceof Docente)) {
+            throw new InvalidUserDataException("El email " + directorEmail + " no corresponde a un docente.");
+        }
 
         List<ProyectoGrado> proyectos = proyectoRepository.obtenerProyectosPorDirector(directorEmail);
         if (proyectos.isEmpty()) {
@@ -113,9 +120,8 @@ public class ProyectoGradoService {
     /**
      * Obtiene proyectos pendientes de evaluación (para coordinadores)
      */
-    public List<ProyectoGrado> obtenerProyectosPendientesEvaluacion() throws UserNotFoundException {
-        ProyectoGradoRepository repo = (ProyectoGradoRepository) proyectoRepository;
-        List<ProyectoGrado> proyectos = repo.obtenerProyectosPendientesEvaluacion();
+    public List<ProyectoGrado> obtenerProyectosPendientesEvaluacion() throws UserNotFoundException, InvalidUserDataException {
+        List<ProyectoGrado> proyectos = proyectoRepository.obtenerProyectosPendientesEvaluacion();
 
         if (proyectos.isEmpty()) {
             throw new UserNotFoundException("No hay proyectos pendientes de evaluación");
@@ -126,7 +132,7 @@ public class ProyectoGradoService {
     /**
      * Obtiene todos los proyectos del sistema
      */
-    public List<ProyectoGrado> obtenerTodosProyectos() throws UserNotFoundException {
+    public List<ProyectoGrado> obtenerTodosProyectos() throws UserNotFoundException, InvalidUserDataException {
         List<ProyectoGrado> proyectos = proyectoRepository.obtenerTodosProyectos();
         if (proyectos.isEmpty()) {
             throw new UserNotFoundException("No se encontraron proyectos en el sistema");
@@ -155,7 +161,7 @@ public class ProyectoGradoService {
     /**
      * Elimina un proyecto
      */
-    public boolean eliminarProyecto(int idProyecto) throws UserNotFoundException {
+    public boolean eliminarProyecto(int idProyecto) throws UserNotFoundException, InvalidUserDataException {
         // Verificar que el proyecto existe
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
         if (proyecto == null) {
@@ -180,15 +186,17 @@ public class ProyectoGradoService {
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
 
         // Verificar que el coordinador existe
-        userService.findByEmail(coordinadorEmail);
+        Usuario coordinador = userService.findByEmail(coordinadorEmail);
+        if (!(coordinador instanceof Coordinador)) { // <-- ¡Asegúrate de tener esta validación!
+            throw new InvalidUserDataException("El email " + coordinadorEmail + " no corresponde a un coordinador.");
+        }
 
         // Verificar que el proyecto está en un estado que permite evaluación
         if (!puedeSerEvaluado(proyecto.getEstadoActual())) {
             throw new InvalidUserDataException("El proyecto no está en un estado que permita evaluación");
         }
 
-        ProyectoGradoRepository repo = (ProyectoGradoRepository) proyectoRepository;
-        boolean resultado = repo.evaluarFormatoA(idProyecto, aprobado, observaciones);
+        boolean resultado = proyectoRepository.evaluarFormatoA(idProyecto, aprobado, observaciones);
 
         if (resultado) {
             // Simular envío de email de notificación
@@ -221,8 +229,7 @@ public class ProyectoGradoService {
             throw new InvalidUserDataException("Solo se puede reintentar un proyecto con formato A rechazado");
         }
 
-        ProyectoGradoRepository repo = (ProyectoGradoRepository) proyectoRepository;
-        boolean resultado = repo.procesarReintentoFormatoA(idProyecto);
+        boolean resultado = proyectoRepository.procesarReintentoFormatoA(idProyecto);
 
         if (resultado) {
             LOGGER.info("Reintento procesado para proyecto ID: " + idProyecto
@@ -287,7 +294,7 @@ public class ProyectoGradoService {
     /**
      * Verifica si un proyecto puede reintentar formato A
      */
-    public boolean puedeReintentarFormato(int idProyecto) throws UserNotFoundException {
+    public boolean puedeReintentarFormato(int idProyecto) throws UserNotFoundException, InvalidUserDataException {
         ProyectoGrado proyecto = obtenerProyecto(idProyecto);
         return proyecto != null && proyecto.puedeReintentar();
     }
@@ -367,22 +374,21 @@ public class ProyectoGradoService {
         }
 
         // Validar que si el director es OCASIONAL, debe tener codirector
-        User director = userService.findByEmail(proyecto.getDirectorEmail());
-        if ("OCASIONAL".equals(director.getTipoDocente())) {
-            if (proyecto.getCodirectorEmail() == null || proyecto.getCodirectorEmail().trim().isEmpty()) {
+        Docente director = proyecto.getDirector();
+        if (director == null) {
+            errores.append("- El director no puede ser nulo.\n");
+        } else if ("OCASIONAL".equals(director.getTipoDocente())) {
+            if (proyecto.getCodirector() == null) {
                 errores.append("- El director es ocasional y debe tener un codirector asignado.\n");
-            } else {
-                // Validar que el codirector exista
-                try {
-                    userService.findByEmail(proyecto.getCodirectorEmail());
-                } catch (UserNotFoundException e) {
-                    errores.append("- Codirector no encontrado con email: ").append(proyecto.getCodirectorEmail()).append("\n");
-                }
             }
+            // ¡No es necesario validar que el codirector exista aquí, ya que es un objeto Docente!
         }
 
-        validarEmailUsuario(proyecto.getEstudiante1Email(), "estudiante1", errores);
-        validarEmailUsuario(proyecto.getEstudiante2Email(), "estudiante2", errores);
+        // Validar que los estudiantes no sean nulos
+        if (proyecto.getEstudiante1() == null) {
+            errores.append("- El estudiante 1 no puede ser nulo.\n");
+        }
+
         // Validar objetivos usando ValidationUtil
         try {
             ValidationUtil.validarLongitud(proyecto.getObjetivoGeneral(), "objetivo general", 20, 1000);
@@ -403,26 +409,6 @@ public class ProyectoGradoService {
 
         if (errores.length() > 0) {
             throw new InvalidUserDataException(errores.toString());
-        }
-    }
-
-    /**
-     * Valida email de usuario y su existencia
-     */
-    private void validarEmailUsuario(String email, String rol, StringBuilder errores) {
-        // Si el email es null, no hay nada que validar
-        if (email == null) {
-            return;
-        }
-
-        try {
-            ValidationUtil.validarEmail(email, "email del " + rol);
-            userService.findByEmail(email);
-        } catch (InvalidUserDataException e) {
-            errores.append("- Email del ").append(rol).append(" no válido: ").append(e.getMessage()).append("\n");
-        } catch (UserNotFoundException e) {
-            errores.append("- ").append(rol.substring(0, 1).toUpperCase()).append(rol.substring(1))
-                    .append(" no encontrado con email: ").append(email).append("\n");
         }
     }
 
@@ -458,9 +444,9 @@ public class ProyectoGradoService {
     private void simularEnvioEmailCreacion(ProyectoGrado proyecto) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         LOGGER.info("ASUNTO: Nuevo proyecto de grado creado");
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
-        if (proyecto.getCodirectorEmail() != null) {
-            LOGGER.info("CC: " + proyecto.getCodirectorEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirector().getEmail() + ", " + proyecto.getEstudiante1().getEmail());
+        if (proyecto.getCodirector() != null) {
+            LOGGER.info("CC: " + proyecto.getCodirector().getEmail());
         }
         LOGGER.info("MENSAJE: Se ha creado exitosamente el proyecto '" + proyecto.getTitulo()
                 + "' y está en evaluación de formato A (intento " + proyecto.getNumeroIntento() + ")");
@@ -476,9 +462,9 @@ public class ProyectoGradoService {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         String resultado = aprobado ? "APROBADO" : "RECHAZADO";
         LOGGER.info("ASUNTO: Evaluación de Formato A - " + resultado);
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
-        if (proyecto.getCodirectorEmail() != null) {
-            LOGGER.info("CC: " + proyecto.getCodirectorEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirector().getEmail() + ", " + proyecto.getEstudiante1().getEmail());
+        if (proyecto.getCodirector() != null) {
+            LOGGER.info("CC: " + proyecto.getCodirector().getEmail());
         }
         LOGGER.info("EVALUADOR: " + coordinadorEmail);
         LOGGER.info("PROYECTO: " + proyecto.getTitulo());
@@ -495,9 +481,9 @@ public class ProyectoGradoService {
     private void simularEnvioEmailReintento(ProyectoGrado proyecto) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         LOGGER.info("ASUNTO: Nuevo intento de Formato A autorizado");
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
-        if (proyecto.getCodirectorEmail() != null) {
-            LOGGER.info("CC: " + proyecto.getCodirectorEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirector().getEmail() + ", " + proyecto.getEstudiante1().getEmail());
+        if (proyecto.getCodirector() != null) {
+            LOGGER.info("CC: " + proyecto.getCodirector().getEmail());
         }
         LOGGER.info("PROYECTO: " + proyecto.getTitulo());
         LOGGER.info("MENSAJE: Se ha autorizado el intento " + (proyecto.getNumeroIntento() + 1)
@@ -511,9 +497,9 @@ public class ProyectoGradoService {
     private void simularEnvioEmailRechazoDefinitivo(ProyectoGrado proyecto) {
         LOGGER.info("=== SIMULACIÓN ENVÍO EMAIL ===");
         LOGGER.info("ASUNTO: PROYECTO RECHAZADO DEFINITIVAMENTE");
-        LOGGER.info("DESTINATARIOS: " + proyecto.getDirectorEmail() + ", " + proyecto.getEstudiante1Email());
-        if (proyecto.getCodirectorEmail() != null) {
-            LOGGER.info("CC: " + proyecto.getCodirectorEmail());
+        LOGGER.info("DESTINATARIOS: " + proyecto.getDirector().getEmail() + ", " + proyecto.getEstudiante1().getEmail());
+        if (proyecto.getCodirector() != null) {
+            LOGGER.info("CC: " + proyecto.getCodirector().getEmail());
         }
         LOGGER.info("PROYECTO: " + proyecto.getTitulo());
         LOGGER.info("MENSAJE: El proyecto ha sido rechazado definitivamente después de 3 intentos. "

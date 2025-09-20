@@ -9,9 +9,9 @@ import co.unicauca.solid.domain.enums.EstadoEnum;
 import java.time.LocalDateTime;
 
 /**
- * Entidad principal que maneja los proyectos de grado
- * Controla los estados, intentos y toda la información del proyecto
- * 
+ * Entidad principal que maneja los proyectos de grado Controla los estados,
+ * intentos y toda la información del proyecto
+ *
  * @author crist
  */
 public class ProyectoGrado {
@@ -19,10 +19,10 @@ public class ProyectoGrado {
     private Integer idProyecto;
     private String titulo;
     private String modalidad;
-    private String directorEmail;
-    private String codirectorEmail;
-    private String estudiante1Email;
-    private String estudiante2Email;
+    private Docente director;
+    private Docente codirector; // Puede ser null
+    private Estudiante estudiante1;
+    private Estudiante estudiante2; // Puede ser null
     private String objetivoGeneral;
     private String objetivosEspecificos;
     private String estadoActual;
@@ -41,27 +41,27 @@ public class ProyectoGrado {
         this.fechaUltimaActualizacion = LocalDateTime.now();
     }
 
-    public ProyectoGrado(String titulo, String modalidad, String directorEmail,
-            String codirectorEmail, String estudianteEmail,
+    public ProyectoGrado(String titulo, String modalidad, Docente director,
+            Docente codirector, Estudiante estudiante1,
             String objetivoGeneral, String objetivosEspecificos) {
-        this();
+        this(); // Llama al constructor por defecto
         this.titulo = titulo;
         this.modalidad = modalidad;
-        this.directorEmail = directorEmail;
-        this.codirectorEmail = codirectorEmail;
-        this.estudiante1Email = estudianteEmail;
+        this.director = director;
+        this.codirector = codirector;
+        this.estudiante1 = estudiante1;
         this.objetivoGeneral = objetivoGeneral;
         this.objetivosEspecificos = objetivosEspecificos;
     }
 
-    public ProyectoGrado(String titulo, String modalidad, String directorEmail, String codirectorEmail, String estudiante1Email, String estudiante2Email, String objetivoGeneral, String objetivosEspecificos) {
-        this();
+    public ProyectoGrado(String titulo, String modalidad, Docente director, Docente codirector, Estudiante estudiante1, Estudiante estudiante2, String objetivoGeneral, String objetivosEspecificos) {
+        this(); // Llama al constructor por defecto
         this.titulo = titulo;
         this.modalidad = modalidad;
-        this.directorEmail = directorEmail;
-        this.codirectorEmail = codirectorEmail;
-        this.estudiante1Email = estudiante1Email;
-        this.estudiante2Email = estudiante2Email;
+        this.director = director;
+        this.codirector = codirector;
+        this.estudiante1 = estudiante1;
+        this.estudiante2 = estudiante2;
         this.objetivoGeneral = objetivoGeneral;
         this.objetivosEspecificos = objetivosEspecificos;
     }
@@ -93,41 +93,42 @@ public class ProyectoGrado {
         this.actualizarFechaModificacion();
     }
 
-    public String getDirectorEmail() {
-        return directorEmail;
+    // Getters y Setters para Docente y Estudiantes
+    public Docente getDirector() {
+        return director;
     }
 
-    public void setDirectorEmail(String directorEmail) {
-        this.directorEmail = directorEmail;
+    public void setDirector(Docente director) {
+        this.director = director;
         this.actualizarFechaModificacion();
     }
 
-    public String getCodirectorEmail() {
-        return codirectorEmail;
+    public Docente getCodirector() {
+        return codirector;
     }
 
-    public void setCodirectorEmail(String codirectorEmail) {
-        this.codirectorEmail = codirectorEmail;
+    public void setCodirector(Docente codirector) {
+        this.codirector = codirector;
         this.actualizarFechaModificacion();
     }
 
-    public String getEstudiante1Email() {
-        return estudiante1Email;
+    public Estudiante getEstudiante1() {
+        return estudiante1;
     }
 
-    public void setEstudiante1Email(String estudiante1Email) {
-        this.estudiante1Email = estudiante1Email;
+    public void setEstudiante1(Estudiante estudiante1) {
+        this.estudiante1 = estudiante1;
     }
 
-    public String getEstudiante2Email() {
-        return estudiante2Email;
+    public Estudiante getEstudiante2() {
+        return estudiante2;
     }
 
-    public void setEstudiante2Email(String estudiante2Email) {
-        if ("PRACTICA_PROFESIONAL".equals(this.modalidad) && estudiante2Email != null) {
+    public void setEstudiante2(Estudiante estudiante2) {
+        if ("PRACTICA_PROFESIONAL".equals(this.modalidad) && estudiante2 != null) {
             throw new IllegalArgumentException("No se permite segundo estudiante en modalidad PRÁCTICA PROFESIONAL");
         }
-        this.estudiante2Email = estudiante2Email;
+        this.estudiante2 = estudiante2;
     }
 
     public String getObjetivoGeneral() {
@@ -230,8 +231,6 @@ public class ProyectoGrado {
             throw new IllegalArgumentException("Modalidad no válida: " + valor);
         }
     }
-
-
 
     public enum RechazoDefinitivo {
         SI('S'),
@@ -370,8 +369,8 @@ public class ProyectoGrado {
     public boolean esValido() {
         return titulo != null && !titulo.trim().isEmpty()
                 && modalidad != null && !modalidad.trim().isEmpty()
-                && directorEmail != null && !directorEmail.trim().isEmpty()
-                && estudiante1Email != null && !estudiante1Email.trim().isEmpty()
+                && director != null // ¡Verificar que el objeto no sea null!
+                && estudiante1 != null // ¡Verificar que el objeto no sea null!
                 && objetivoGeneral != null && !objetivoGeneral.trim().isEmpty();
     }
 
@@ -392,9 +391,9 @@ public class ProyectoGrado {
                 + "idProyecto=" + idProyecto
                 + ", titulo='" + titulo + '\''
                 + ", modalidad='" + modalidad + '\''
-                + ", directorEmail='" + directorEmail + '\''
-                + ", estudiante1Email='" + estudiante1Email + '\''
-                + ", estudiante2Email='" + estudiante2Email + '\''
+                + ", directorEmail='" + (director != null ? director.getEmail() : "null") + '\''
+                + ", estudiante1Email='" + (estudiante1 != null ? estudiante1.getEmail() : "null") + '\''
+                + ", estudiante2Email='" + (estudiante2 != null ? estudiante2.getEmail() : "null") + '\''
                 + ", estadoActual='" + estadoActual + '\''
                 + ", numeroIntento=" + numeroIntento
                 + ", rechazadoDefinitivamente=" + rechazadoDefinitivamente

@@ -1,7 +1,7 @@
 
 package co.unicauca.solid.access;
 
-import co.unicauca.solid.domain.User;
+import co.unicauca.solid.domain.Usuario;
 import java.util.List;
 
 /**
@@ -9,9 +9,10 @@ import java.util.List;
  * @author ASUS
  */
 public interface IUserRepository {
-    boolean save(User user);
+    boolean save(Usuario newUser);
+    boolean update(Usuario user);
     boolean validateLogin(String email, String password);
-    User findByEmail(String email);
-    List<User> findByRole(String role);
-    List<User> list();
+    Usuario findByEmail(String email);
+    List<Usuario> findByRole(String role);
+    List<Usuario> list();
 }
