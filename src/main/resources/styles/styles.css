@@ -1,0 +1,56 @@
+/* Archivo: src/main/resources/styles.css */
+
+.root {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 14px;
+}
+
+.title {
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+    -fx-text-fill: #333;
+}
+
+.hint-text {
+    -fx-font-size: 10px;
+    -fx-text-fill: gray;
+}
+
+.primary-button {
+    -fx-background-color: #00cc99;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.primary-button:hover {
+    -fx-background-color: #00aa77;
+}
+
+.secondary-button {
+    -fx-background-color: #882e93;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-padding: 10px 20px;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #702578;
+}
+
+.text-field, .password-field, .combo-box {
+    -fx-padding: 5px;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused {
+    -fx-border-color: #00cc99;
+    -fx-border-width: 2px;
+}

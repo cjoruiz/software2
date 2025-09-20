@@ -1,39 +1,39 @@
+// Archivo: co.unicauca.solid.access.UserRepository.java
 package co.unicauca.solid.access;
 
-import co.unicauca.solid.domain.User;
+import co.unicauca.solid.domain.Coordinador;
+import co.unicauca.solid.domain.Docente;
+import co.unicauca.solid.domain.Estudiante;
+import co.unicauca.solid.domain.Usuario;
 import co.unicauca.utilities.security.PasswordValidator;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
-
 public class UserRepository implements IUserRepository {
 
-    // ELIMINA la conexión global
-    // private Connection conn;
     public UserRepository() {
         initDatabase();
     }
 
- @Override
-    public boolean save(User newUser) {
-        String sql = "INSERT INTO User (email, password, nombres, apellidos, celular, programa, rol) "
-                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
+    @Override
+    public boolean save(Usuario newUser) {
+        // Verificar si el usuario ya existe
+        if (findByEmail(newUser.getEmail()) != null) {
+            System.err.println("Error: El usuario con email " + newUser.getEmail() + " ya existe.");
+            return false;
+        }
 
-        try (Connection connection = getConnection(); 
-             PreparedStatement pstmt = connection.prepareStatement(sql)) {
+        String sql = "INSERT INTO user (email, password, nombres, apellidos, celular, programa, rol, tipo_docente) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             String hashedPassword = PasswordValidator.hashPassword(newUser.getPassword());
             pstmt.setString(1, newUser.getEmail());
@@ -43,6 +43,8 @@ public class UserRepository implements IUserRepository {
             pstmt.setString(5, newUser.getCelular());
             pstmt.setString(6, newUser.getPrograma());
             pstmt.setString(7, newUser.getRol());
+            String tipoDocente = (newUser instanceof Docente) ? ((Docente) newUser).getTipoDocente() : null;
+            pstmt.setString(8, tipoDocente);
 
             pstmt.executeUpdate();
             return true;
@@ -53,56 +55,78 @@ public class UserRepository implements IUserRepository {
     }
 
     @Override
-    public boolean validateLogin(String email, String password) {
-        User user = findByEmail(email);
-        if (user != null) {
-            String hashedPassword = PasswordValidator.hashPassword(password);
-            return hashedPassword.equals(user.getPassword());
+    public boolean update(Usuario user) { // <-- NUEVO MÉTODO
+        String sql = "UPDATE user SET password = ?, nombres = ?, apellidos = ?, celular = ?, programa = ?, rol = ?, tipo_docente = ? WHERE email = ?";
+
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
+
+            String hashedPassword = PasswordValidator.hashPassword(user.getPassword());
+            pstmt.setString(1, hashedPassword);
+            pstmt.setString(2, user.getNombres());
+            pstmt.setString(3, user.getApellidos());
+            pstmt.setString(4, user.getCelular());
+            pstmt.setString(5, user.getPrograma());
+            pstmt.setString(6, user.getRol());
+
+            String tipoDocente = (user instanceof Docente) ? ((Docente) user).getTipoDocente() : null;
+            pstmt.setString(7, tipoDocente);
+
+            pstmt.setString(8, user.getEmail()); // La clave primaria
+
+            int affectedRows = pstmt.executeUpdate();
+            return affectedRows > 0;
+
+        } catch (SQLException ex) {
+            Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
+            return false;
         }
-        return false;
     }
+
     @Override
-    public List<User> list() {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM User";
+    public boolean validateLogin(String email, String password) {
+        String hashedInput = PasswordValidator.hashPassword(password);
+        String sql = "SELECT COUNT(*) FROM user WHERE email = ? AND password = ?";
 
-        try (Connection connection = getConnection(); Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, email);
+            pstmt.setString(2, hashedInput);
 
-            while (rs.next()) {
-                User user = new User();
-                user.setEmail(rs.getString("email"));
-                user.setNombres(rs.getString("nombres"));
-                user.setApellidos(rs.getString("apellidos"));
-                user.setCelular(rs.getString("celular"));
-                user.setPrograma(rs.getString("programa"));
-                user.setRol(rs.getString("rol"));
-                users.add(user);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
             }
         } catch (SQLException ex) {
             Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return users;
+        return false;
     }
 
     @Override
-    public User findByEmail(String email) {
-        String sql = "SELECT * FROM User WHERE email = ?";
+    public List<Usuario> list() {
+        List<Usuario> usuarios = new ArrayList<>();
+        String sql = "SELECT * FROM user";
+
+        try (Connection connection = getConnection(); Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                usuarios.add(mapearUsuario(rs));
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return usuarios;
+    }
+
+    @Override
+    public Usuario findByEmail(String email) {
+        String sql = "SELECT * FROM user WHERE email = ?";
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
             pstmt.setString(1, email);
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
-                User user = new User();
-                user.setEmail(rs.getString("email"));
-                user.setPassword(rs.getString("password"));
-                user.setNombres(rs.getString("nombres"));
-                user.setApellidos(rs.getString("apellidos"));
-                user.setCelular(rs.getString("celular"));
-                user.setPrograma(rs.getString("programa"));
-                user.setRol(rs.getString("rol"));
-                return user;
+                return mapearUsuario(rs);
             }
         } catch (SQLException ex) {
             Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -110,15 +134,65 @@ public class UserRepository implements IUserRepository {
         return null;
     }
 
+    @Override
+    public List<Usuario> findByRole(String role) {
+        List<Usuario> usuarios = new ArrayList<>();
+        String sql = "SELECT * FROM user WHERE rol = ?";
+
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, role);
+
+            try (ResultSet rs = pstmt.executeQuery()) {
+                while (rs.next()) {
+                    usuarios.add(mapearUsuario(rs));
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return usuarios;
+    }
+
+    private Usuario mapearUsuario(ResultSet rs) throws SQLException {
+        String rol = rs.getString("rol");
+        Usuario usuario = null;
+
+        switch (rol) {
+            case "ESTUDIANTE":
+                usuario = new Estudiante();
+                break;
+            case "COORDINADOR":
+                usuario = new Coordinador();
+                break;
+            case "DOCENTE":
+                Docente docente = new Docente();
+                docente.setTipoDocente(rs.getString("tipo_docente"));
+                usuario = docente;
+                break;
+            default:
+                throw new SQLException("Rol de usuario no válido: " + rol);
+        }
+
+        usuario.setEmail(rs.getString("email"));
+        usuario.setPassword(rs.getString("password"));
+        usuario.setNombres(rs.getString("nombres"));
+        usuario.setApellidos(rs.getString("apellidos"));
+        usuario.setCelular(rs.getString("celular"));
+        usuario.setPrograma(rs.getString("programa"));
+
+        return usuario;
+    }
+
     private void initDatabase() {
-        String sql = "CREATE TABLE IF NOT EXISTS User (\n"
-                + "    email TEXT PRIMARY KEY,\n"
-                + "    password TEXT NOT NULL,\n"
-                + "    nombres TEXT NOT NULL,\n"
-                + "    apellidos TEXT NOT NULL,\n"
-                + "    celular TEXT,\n"
-                + "    programa TEXT NOT NULL,\n"
-                + "    rol TEXT NOT NULL\n"
+        String sql = "CREATE TABLE IF NOT EXISTS user ("
+                + "    email TEXT PRIMARY KEY,"
+                + "    password TEXT NOT NULL,"
+                + "    nombres TEXT NOT NULL,"
+                + "    apellidos TEXT NOT NULL,"
+                + "    celular TEXT,"
+                + "    programa TEXT NOT NULL,"
+                + "    rol TEXT NOT NULL CHECK (rol IN ('ESTUDIANTE', 'DOCENTE', 'COORDINADOR')), "
+                + "    tipo_docente TEXT CHECK (tipo_docente IN ('PLANTA', 'OCASIONAL')) "
                 + ");";
 
         try (Connection connection = getConnection(); Statement stmt = connection.createStatement()) {
@@ -128,43 +202,8 @@ public class UserRepository implements IUserRepository {
         }
     }
 
-    // Método para obtener conexión (igual que LocalFileRepository)
     private Connection getConnection() throws SQLException {
         String url = "jdbc:sqlite:basedatos.db";
         return DriverManager.getConnection(url);
     }
-  
-
-
-
-    @Override
-    public List<User> findByRole(String role) {
-        List<User> users = new ArrayList<>();
-        String sql = "SELECT * FROM User WHERE rol = ?";
-
-        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
-
-            // Primero establecer el parámetro
-            pstmt.setString(1, role);
-
-            // Luego ejecutar la consulta y obtener el ResultSet
-            try (ResultSet rs = pstmt.executeQuery()) {
-                while (rs.next()) {
-                    User user = new User();
-                    user.setEmail(rs.getString("email"));
-                    user.setNombres(rs.getString("nombres"));
-                    user.setApellidos(rs.getString("apellidos"));
-                    user.setCelular(rs.getString("celular"));
-                    user.setPrograma(rs.getString("programa"));
-                    user.setRol(rs.getString("rol"));
-                    users.add(user);
-                }
-            }
-
-        } catch (SQLException ex) {
-            Logger.getLogger(UserRepository.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return users;
-    }
-
 }

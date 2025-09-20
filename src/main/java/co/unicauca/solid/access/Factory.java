@@ -1,19 +1,25 @@
 package co.unicauca.solid.access;
 
+import co.unicauca.solid.service.UserService;
+
 /**
+ * Fábrica para crear instancias de los repositorios. Implementa el patrón de
+ * diseño Factory Method.
  *
  * @author ASUS
  */
 public class Factory {
 
     private static Factory instance;
+    private final UserService userService;
 
-    private Factory() {
+    private Factory(UserService userService) {
+        this.userService = userService;
     }
 
-    public static Factory getInstance() {
+    public static Factory getInstance(UserService userService) {
         if (instance == null) {
-            instance = new Factory();
+            instance = new Factory(userService);
         }
         return instance;
     }
@@ -24,6 +30,8 @@ public class Factory {
             case "default":
                 result = new UserRepository();
                 break;
+            default:
+                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
         }
         return result;
     }
@@ -34,6 +42,8 @@ public class Factory {
             case "default":
                 result = new FilePGRepository();
                 break;
+            default:
+                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
         }
         return result;
     }
@@ -42,8 +52,10 @@ public class Factory {
         IProyectoGradoRepository result = null;
         switch (type) {
             case "default":
-                result = new ProyectoGradoRepository();
+                result = new ProyectoGradoRepository(userService); // <-- ¡¡¡ CORREGIDO !!!
                 break;
+            default:
+                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
         }
         return result;
     }
@@ -54,6 +66,20 @@ public class Factory {
             case "default":
                 result = new ProgramRepository();
                 break;
+            default:
+                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
+        }
+        return result;
+    }
+
+    public IMensajeInternoRepository getMensajeInternoRepository(String type) {
+        IMensajeInternoRepository result = null;
+        switch (type) {
+            case "default":
+                result = new MensajeInternoRepository();
+                break;
+            default:
+                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
         }
         return result;
     }
