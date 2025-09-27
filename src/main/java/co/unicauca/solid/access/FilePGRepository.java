@@ -29,74 +29,75 @@ public class FilePGRepository implements IFilePGRepository {
     }
 
     @Override
-    public int insertarDocumento(FilePG documento) {
-        String sql = "INSERT INTO documentos_proyecto ("
-                + "id_proyecto, tipo_documento, version, "
-                + "contenido, nombre_archivo, extension, tamaño, "
-                + "fecha_subida, estado, observaciones"
-                + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+public int insertarDocumento(FilePG documento) {
+    // Validar que la versión no sea null
+    if (documento.getVersion() == null) {
+        throw new IllegalArgumentException("La versión del documento no puede ser null");
+    }
+    
+    String sql = "INSERT INTO documentos_proyecto ("
+            + "id_proyecto, tipo_documento, version, "
+            + "contenido, nombre_archivo, extension, tamaño, "
+            + "fecha_subida, estado, observaciones"
+            + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        int maxReintentos = 3;
-        int reintentos = 0;
+    int maxReintentos = 3;
+    int reintentos = 0;
 
-        while (reintentos < maxReintentos) {
-            try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+    while (reintentos < maxReintentos) {
+        try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-                // Obtener la siguiente versión si no está establecida
-                if (documento.getVersion() == null) {
-                    documento.setVersion(obtenerSiguienteVersion(documento.getIdProyecto(), documento.getTipoDocumento()));
-                }
+            // ✅ Ya no se calcula la versión aquí
+            pstmt.setInt(1, documento.getIdProyecto());
+            pstmt.setString(2, documento.getTipoDocumento());
+            pstmt.setInt(3, documento.getVersion()); // ← Versión ya establecida
+            pstmt.setBytes(4, documento.getContenido());
+            pstmt.setString(5, documento.getNombreArchivo());
+            pstmt.setString(6, documento.getExtension());
+            pstmt.setLong(7, documento.getTamaño());
+            String fechaFormateada = documento.getFechaSubida().toString().replace("T", " ");
+            pstmt.setString(8, fechaFormateada);
+            pstmt.setString(9, documento.getEstado());
+            pstmt.setString(10, documento.getObservaciones());
 
-                pstmt.setInt(1, documento.getIdProyecto());
-                pstmt.setString(2, documento.getTipoDocumento());
-                pstmt.setInt(3, documento.getVersion());
-                pstmt.setBytes(4, documento.getContenido());
-                pstmt.setString(5, documento.getNombreArchivo());
-                pstmt.setString(6, documento.getExtension());
-                pstmt.setLong(7, documento.getTamaño());
-                String fechaFormateada = documento.getFechaSubida().toString().replace("T", " ");
-                pstmt.setString(8, fechaFormateada);
-                pstmt.setString(9, documento.getEstado());
-                pstmt.setString(10, documento.getObservaciones());
+            int affectedRows = pstmt.executeUpdate();
 
-                int affectedRows = pstmt.executeUpdate();
-
-                if (affectedRows > 0) {
-                    try (ResultSet rs = pstmt.getGeneratedKeys()) {
-                        if (rs.next()) {
-                            int idGenerado = rs.getInt(1);
-                            // Marcar versiones anteriores como obsoletas
-                            marcarVersionesAnterioresObsoletas(documento.getIdProyecto(),
-                                    documento.getTipoDocumento(),
-                                    documento.getVersion());
-                            return idGenerado;
-                        }
+            if (affectedRows > 0) {
+                try (ResultSet rs = pstmt.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        int idGenerado = rs.getInt(1);
+                        // Marcar versiones anteriores como obsoletas
+                        marcarVersionesAnterioresObsoletas(documento.getIdProyecto(),
+                                documento.getTipoDocumento(),
+                                documento.getVersion());
+                        return idGenerado;
                     }
-                }
-                return -1;
-
-            } catch (SQLException e) {
-                reintentos++;
-                System.err.println("Error insertando documento (reintento " + reintentos + "/" + maxReintentos + "): " + e.getMessage());
-
-                if (reintentos >= maxReintentos) {
-                    return -1;
-                }
-
-                if (e.getMessage().contains("locked") || e.getMessage().contains("SQLITE_BUSY")) {
-                    try {
-                        Thread.sleep(100 * reintentos);
-                    } catch (InterruptedException ie) {
-                        Thread.currentThread().interrupt();
-                        return -1;
-                    }
-                } else {
-                    return -1;
                 }
             }
+            return -1;
+
+        } catch (SQLException e) {
+            reintentos++;
+            System.err.println("Error insertando documento (reintento " + reintentos + "/" + maxReintentos + "): " + e.getMessage());
+
+            if (reintentos >= maxReintentos) {
+                return -1;
+            }
+
+            if (e.getMessage().contains("locked") || e.getMessage().contains("SQLITE_BUSY")) {
+                try {
+                    Thread.sleep(100 * reintentos);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    return -1;
+                }
+            } else {
+                return -1;
+            }
         }
-        return -1;
     }
+    return -1;
+}
 
     /**
      * Obtiene documentos por proyecto y tipo

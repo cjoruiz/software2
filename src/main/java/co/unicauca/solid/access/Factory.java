@@ -1,86 +1,103 @@
 package co.unicauca.solid.access;
 
 import co.unicauca.solid.service.UserService;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
- * Fábrica para crear instancias de los repositorios. Implementa el patrón de
- * diseño Factory Method.
- *
- * @author ASUS
+ * Fábrica Singleton para crear instancias de los repositorios.
+ * Lee el tipo de cada repositorio desde application.properties.
  */
 public class Factory {
 
-    private static Factory instance;
-    private final UserService userService;
+    private static volatile Factory instance;
 
-    private Factory(UserService userService) {
-        this.userService = userService;
+    private final String userRepoType;
+    private final String filePGRepoType;
+    private final String proyectoGradoRepoType;
+    private final String programRepoType;
+    private final String mensajeInternoRepoType;
+
+    private UserService userService;
+
+    private Factory() {
+        Properties props = loadProperties();
+        this.userRepoType = props.getProperty("user.repository.type", "default").trim();
+        this.filePGRepoType = props.getProperty("filepg.repository.type", "default").trim();
+        this.proyectoGradoRepoType = props.getProperty("proyectogrado.repository.type", "default").trim();
+        this.programRepoType = props.getProperty("program.repository.type", "default").trim();
+        this.mensajeInternoRepoType = props.getProperty("mensajeinterno.repository.type", "default").trim();
     }
 
-    public static Factory getInstance(UserService userService) {
+    private Properties loadProperties() {
+        Properties props = new Properties();
+        try (InputStream input = getClass().getClassLoader().getResourceAsStream("application.properties")) {
+            if (input != null) {
+                props.load(input);
+            } else {
+                System.err.println("️ application.properties no encontrado. Usando valores por defecto.");
+            }
+        } catch (IOException e) {
+            System.err.println(" Error al cargar application.properties: " + e.getMessage());
+        }
+        return props;
+    }
+
+    public static void initialize() {
+        if (instance != null) {
+            throw new IllegalStateException("La fábrica ya fue inicializada.");
+        }
+        instance = new Factory();
+    }
+
+    public static Factory getInstance() {
         if (instance == null) {
-            instance = new Factory(userService);
+            throw new IllegalStateException("La fábrica no ha sido inicializada.");
         }
         return instance;
     }
 
-    public IUserRepository getUserRepository(String type) {
-        IUserRepository result = null;
-        switch (type) {
-            case "default":
-                result = new UserRepository();
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
+    public void setUserService(UserService userService) {
+        if (this.userService != null) {
+            throw new IllegalStateException("UserService ya fue inyectado.");
         }
-        return result;
+        this.userService = userService;
     }
 
-    public IFilePGRepository getFileRepository(String type) {
-        IFilePGRepository result = null;
-        switch (type) {
-            case "default":
-                result = new FilePGRepository();
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
-        }
-        return result;
+
+
+    public IUserRepository getUserRepository() {
+        return createRepository(userRepoType, "user", () -> new UserRepository());
     }
 
-    public IProyectoGradoRepository getProyectoGradoRepository(String type) {
-        IProyectoGradoRepository result = null;
-        switch (type) {
-            case "default":
-                result = new ProyectoGradoRepository(userService); // <-- ¡¡¡ CORREGIDO !!!
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
-        }
-        return result;
+    public IFilePGRepository getFileRepository() {
+        return createRepository(filePGRepoType, "filepg", () -> new FilePGRepository());
     }
 
-    public IProgramRepository getProgramRepository(String type) {
-        IProgramRepository result = null;
-        switch (type) {
-            case "default":
-                result = new ProgramRepository();
-                break;
-            default:
-                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
-        }
-        return result;
+    public IProyectoGradoRepository getProyectoGradoRepository() {
+        return createRepository(proyectoGradoRepoType, "proyectogrado", () -> {
+            if (userService == null) {
+                throw new IllegalStateException("UserService no ha sido inyectado en la fábrica.");
+            }
+            return new ProyectoGradoRepository(userService);
+        });
     }
 
-    public IMensajeInternoRepository getMensajeInternoRepository(String type) {
-        IMensajeInternoRepository result = null;
+    public IProgramRepository getProgramRepository() {
+        return createRepository(programRepoType, "program", () -> new ProgramRepository());
+    }
+
+    public IMensajeInternoRepository getMensajeInternoRepository() {
+        return createRepository(mensajeInternoRepoType, "mensajeinterno", () -> new MensajeInternoRepository());
+    }
+
+    private <T> T createRepository(String type, String repoName, java.util.function.Supplier<T> defaultSupplier) {
         switch (type) {
             case "default":
-                result = new MensajeInternoRepository();
-                break;
+                return defaultSupplier.get();
             default:
-                throw new IllegalArgumentException("Tipo de repositorio no soportado: " + type);
+                throw new IllegalArgumentException("Tipo de repositorio no soportado para '" + repoName + "': " + type);
         }
-        return result;
     }
 }

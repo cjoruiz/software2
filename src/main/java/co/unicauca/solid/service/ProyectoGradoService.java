@@ -11,13 +11,14 @@ import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.UserNotFoundException;
 import co.unicauca.utilities.validators.ValidationUtil;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
- * Servicio para gestión de proyectos de grado
- * Implementa toda la lógica de negocio según los requisitos funcionales
+ * Servicio para gestión de proyectos de grado Implementa toda la lógica de
+ * negocio según los requisitos funcionales
  */
 public class ProyectoGradoService {
 
@@ -199,6 +200,7 @@ public class ProyectoGradoService {
         boolean resultado = proyectoRepository.evaluarFormatoA(idProyecto, aprobado, observaciones);
 
         if (resultado) {
+            notificarCambioEstadisticas();
             // Simular envío de email de notificación
             simularEnvioEmailEvaluacion(proyecto, aprobado, observaciones, coordinadorEmail);
 
@@ -560,4 +562,21 @@ public class ProyectoGradoService {
             return "Error obteniendo estadísticas: " + e.getMessage();
         }
     }
+    // Observador ProyectoGradoService.java
+    private List<Runnable> estadisticasListeners = new ArrayList<>();
+
+    public void addEstadisticasListener(Runnable listener) {
+        estadisticasListeners.add(listener);
+    }
+
+    public void removeEstadisticasListener(Runnable listener) {
+        estadisticasListeners.remove(listener);
+    }
+
+    private void notificarCambioEstadisticas() {
+        for (Runnable listener : estadisticasListeners) {
+            listener.run();
+        }
+    }
+
 }

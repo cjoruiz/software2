@@ -34,9 +34,9 @@ import java.util.logging.Logger;
  */
 public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
-    private final UserService userService; // <-- ¡Nueva dependencia!
+    private final UserService userService; 
 
-    public ProyectoGradoRepository(UserService userService) { // <-- ¡Constructor modificado!
+    public ProyectoGradoRepository(UserService userService) { 
         this.userService = userService;
         initDatabase();
     }
@@ -55,7 +55,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
             pstmt.setString(1, proyecto.getTitulo());
             pstmt.setString(2, proyecto.getModalidad());
-            pstmt.setString(3, proyecto.getDirector().getEmail()); // En lugar de getDirectorEmail()
+            pstmt.setString(3, proyecto.getDirector().getEmail()); 
             pstmt.setString(4, proyecto.getCodirector() != null ? proyecto.getCodirector().getEmail() : null);
             pstmt.setString(5, proyecto.getEstudiante1().getEmail());
             pstmt.setString(6, proyecto.getEstudiante2() != null ? proyecto.getEstudiante2().getEmail() : null);
@@ -88,7 +88,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
     }
 
     @Override
-    public ProyectoGrado obtenerProyectoPorId(int idProyecto) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public ProyectoGrado obtenerProyectoPorId(int idProyecto) throws InvalidUserDataException { 
         String sql = "SELECT * FROM proyectos_grado WHERE id_proyecto = ?";
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -109,14 +109,14 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
     }
 
     @Override
-    public List<ProyectoGrado> obtenerProyectosPorEstudiante(String estudianteEmail) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public List<ProyectoGrado> obtenerProyectosPorEstudiante(String estudianteEmail) throws InvalidUserDataException { 
         String sql = "SELECT * FROM proyectos_grado WHERE estudiante1_email = ? OR estudiante2_email = ? ORDER BY fecha_creacion DESC"; // <-- ¡CORREGIDO! (La tabla no tiene 'estudiante_email')
         List<ProyectoGrado> proyectos = new ArrayList<>();
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
 
             pstmt.setString(1, estudianteEmail);
-            pstmt.setString(2, estudianteEmail); // <-- ¡CORREGIDO!
+            pstmt.setString(2, estudianteEmail);
 
             try (ResultSet rs = pstmt.executeQuery()) {
                 while (rs.next()) {
@@ -127,12 +127,12 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error obteniendo proyectos por estudiante: " + e.getMessage());
-            throw new InvalidUserDataException("Error al obtener proyectos por estudiante: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al obtener proyectos por estudiante: " + e.getMessage()); 
         }
     }
 
     @Override
-    public List<ProyectoGrado> obtenerProyectosPorDirector(String directorEmail) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public List<ProyectoGrado> obtenerProyectosPorDirector(String directorEmail) throws InvalidUserDataException { 
         String sql = "SELECT * FROM proyectos_grado WHERE director_email = ? ORDER BY fecha_creacion DESC";
         List<ProyectoGrado> proyectos = new ArrayList<>();
 
@@ -149,7 +149,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error obteniendo proyectos por director: " + e.getMessage());
-            throw new InvalidUserDataException("Error al obtener proyectos por director: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al obtener proyectos por director: " + e.getMessage()); 
         }
     }
 
@@ -157,7 +157,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
      * Obtiene proyectos que están pendientes de evaluación por el coordinador
      */
     @Override
-    public List<ProyectoGrado> obtenerProyectosPendientesEvaluacion() throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public List<ProyectoGrado> obtenerProyectosPendientesEvaluacion() throws InvalidUserDataException {
         String sql = "SELECT * FROM proyectos_grado "
                 + "WHERE estado_actual IN ("
                 + "    'EN_PRIMERA_EVALUACION_FORMATO_A', "
@@ -176,12 +176,12 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error obteniendo proyectos pendientes: " + e.getMessage());
-            throw new InvalidUserDataException("Error al obtener proyectos pendientes: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al obtener proyectos pendientes: " + e.getMessage()); 
         }
     }
 
     @Override
-    public List<ProyectoGrado> obtenerTodosProyectos() throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public List<ProyectoGrado> obtenerTodosProyectos() throws InvalidUserDataException { 
         String sql = "SELECT * FROM proyectos_grado ORDER BY fecha_creacion DESC";
         List<ProyectoGrado> proyectos = new ArrayList<>();
 
@@ -194,12 +194,12 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error obteniendo todos los proyectos: " + e.getMessage());
-            throw new InvalidUserDataException("Error al obtener todos los proyectos: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al obtener todos los proyectos: " + e.getMessage()); 
         }
     }
 
     @Override
-    public boolean actualizarProyecto(ProyectoGrado proyecto) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean actualizarProyecto(ProyectoGrado proyecto) throws InvalidUserDataException { 
         String sql
                 = "UPDATE proyectos_grado SET "
                 + "titulo = ?, modalidad = ?, director_email = ?, "
@@ -214,10 +214,10 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
             pstmt.setString(1, proyecto.getTitulo());
             pstmt.setString(2, proyecto.getModalidad());
-            pstmt.setString(3, proyecto.getDirector().getEmail()); // ¡CORREGIDO!
-            pstmt.setString(4, proyecto.getCodirector() != null ? proyecto.getCodirector().getEmail() : null); // ¡CORREGIDO!
-            pstmt.setString(5, proyecto.getEstudiante1().getEmail()); // ¡CORREGIDO!
-            pstmt.setString(6, proyecto.getEstudiante2() != null ? proyecto.getEstudiante2().getEmail() : null); // ¡CORREGIDO!
+            pstmt.setString(3, proyecto.getDirector().getEmail()); 
+            pstmt.setString(4, proyecto.getCodirector() != null ? proyecto.getCodirector().getEmail() : null); 
+            pstmt.setString(5, proyecto.getEstudiante1().getEmail()); 
+            pstmt.setString(6, proyecto.getEstudiante2() != null ? proyecto.getEstudiante2().getEmail() : null); 
             pstmt.setString(7, proyecto.getObjetivoGeneral());
             pstmt.setString(8, proyecto.getObjetivosEspecificos());
             pstmt.setString(9, proyecto.getEstadoActual());
@@ -233,7 +233,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error actualizando proyecto: " + e.getMessage());
-            throw new InvalidUserDataException("Error al actualizar el proyecto: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al actualizar el proyecto: " + e.getMessage()); 
         }
     }
 
@@ -241,7 +241,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
      * Evalúa un formato A - Método específico para coordinadores
      */
     @Override
-    public boolean evaluarFormatoA(int idProyecto, boolean aprobado, String observaciones) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean evaluarFormatoA(int idProyecto, boolean aprobado, String observaciones) throws InvalidUserDataException { 
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
 
@@ -274,7 +274,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
                 if (e instanceof InvalidUserDataException) {
                     throw e;
                 } else {
-                    throw new InvalidUserDataException("Error al evaluar el formato A: " + e.getMessage()); // <-- ¡CORREGIDO!
+                    throw new InvalidUserDataException("Error al evaluar el formato A: " + e.getMessage()); 
                 }
             } finally {
                 connection.setAutoCommit(true);
@@ -282,7 +282,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error evaluando formato A: " + e.getMessage());
-            throw new InvalidUserDataException("Error al evaluar el formato A: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al evaluar el formato A: " + e.getMessage());
         }
     }
 
@@ -290,7 +290,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
      * Procesa un reintento de formato A
      */
     @Override
-    public boolean procesarReintentoFormatoA(int idProyecto) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean procesarReintentoFormatoA(int idProyecto) throws InvalidUserDataException {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
 
@@ -321,7 +321,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
                 if (e instanceof InvalidUserDataException) {
                     throw e;
                 } else {
-                    throw new InvalidUserDataException("Error al procesar el reintento: " + e.getMessage()); // <-- ¡CORREGIDO!
+                    throw new InvalidUserDataException("Error al procesar el reintento: " + e.getMessage());
                 }
             } finally {
                 connection.setAutoCommit(true);
@@ -329,12 +329,12 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error procesando reintento: " + e.getMessage());
-            throw new InvalidUserDataException("Error al procesar el reintento: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al procesar el reintento: " + e.getMessage()); 
         }
     }
 
     @Override
-    public boolean actualizarEstadoProyecto(int idProyecto, String nuevoEstado) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean actualizarEstadoProyecto(int idProyecto, String nuevoEstado) throws InvalidUserDataException { 
         String sql
                 = "UPDATE proyectos_grado SET "
                 + "    estado_actual = ?, fecha_ultima_actualizacion = ? "
@@ -352,17 +352,17 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error actualizando estado del proyecto: " + e.getMessage());
-            throw new InvalidUserDataException("Error al actualizar el estado del proyecto: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al actualizar el estado del proyecto: " + e.getMessage()); 
         }
     }
 
     @Override
-    public boolean incrementarIntento(int idProyecto) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean incrementarIntento(int idProyecto) throws InvalidUserDataException {
         return procesarReintentoFormatoA(idProyecto);
     }
 
     @Override
-    public boolean marcarRechazoDefinitivo(int idProyecto) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean marcarRechazoDefinitivo(int idProyecto) throws InvalidUserDataException {
         try (Connection connection = getConnection()) {
             ProyectoGrado proyecto = obtenerProyectoPorId(idProyecto);
             if (proyecto == null) {
@@ -374,12 +374,12 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error marcando rechazo definitivo: " + e.getMessage());
-            throw new InvalidUserDataException("Error al marcar rechazo definitivo: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al marcar rechazo definitivo: " + e.getMessage()); 
         }
     }
 
     @Override
-    public boolean eliminarProyecto(int idProyecto) throws InvalidUserDataException { // <-- ¡CORREGIDO!
+    public boolean eliminarProyecto(int idProyecto) throws InvalidUserDataException {
         String sql = "DELETE FROM proyectos_grado WHERE id_proyecto = ?";
 
         try (Connection connection = getConnection(); PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -390,7 +390,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
 
         } catch (SQLException e) {
             System.err.println("Error eliminando proyecto: " + e.getMessage());
-            throw new InvalidUserDataException("Error al eliminar el proyecto: " + e.getMessage()); // <-- ¡CORREGIDO!
+            throw new InvalidUserDataException("Error al eliminar el proyecto: " + e.getMessage()); 
         }
     }
 
@@ -436,7 +436,6 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             proyecto.setRechazadoDefinitivamente(rechazoDef.charAt(0));
         }
 
-        // ¡¡¡ NUEVO: Mapear emails a objetos con verificación de null !!!
         try {
             // Director (siempre obligatorio)
             String directorEmail = rs.getString("director_email");
@@ -453,7 +452,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             String codirectorEmail = rs.getString("codirector_email");
             if (codirectorEmail != null && !codirectorEmail.trim().isEmpty()) {
                 Usuario codirector = userService.findByEmail(codirectorEmail);
-                if (codirector == null) { // <-- ¡¡¡ NUEVA VERIFICACIÓN DE NULL !!!
+                if (codirector == null) { 
                     throw new SQLException("No se encontró el usuario codirector con email: " + codirectorEmail);
                 }
                 if (!(codirector instanceof Docente)) {
@@ -465,7 +464,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             // Estudiante 1 (siempre obligatorio)
             String estudiante1Email = rs.getString("estudiante1_email");
             Usuario estudiante1 = userService.findByEmail(estudiante1Email);
-            if (estudiante1 == null) { // <-- ¡¡¡ NUEVA VERIFICACIÓN DE NULL !!!
+            if (estudiante1 == null) { 
                 throw new SQLException("No se encontró el usuario estudiante con email: " + estudiante1Email);
             }
             if (!(estudiante1 instanceof Estudiante)) {
@@ -477,7 +476,7 @@ public class ProyectoGradoRepository implements IProyectoGradoRepository {
             String estudiante2Email = rs.getString("estudiante2_email");
             if (estudiante2Email != null && !estudiante2Email.trim().isEmpty()) {
                 Usuario estudiante2 = userService.findByEmail(estudiante2Email);
-                if (estudiante2 == null) { // <-- ¡¡¡ NUEVA VERIFICACIÓN DE NULL !!!
+                if (estudiante2 == null) { 
                     throw new SQLException("No se encontró el usuario estudiante con email: " + estudiante2Email);
                 }
                 if (!(estudiante2 instanceof Estudiante)) {

@@ -48,25 +48,25 @@ public class DocenteController {
 
     @FXML
     private void handleCrearProyecto(ActionEvent event) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/crear_proyecto.fxml"));
-            Parent root = loader.load();
-
-            CrearProyectoController controller = loader.getController();
-            controller.setUsuario(usuario);
-            controller.setUserRepository(userRepository); // Pasar el repositorio
-
-            Scene scene = new Scene(root, 600, 700);
-            Stage stage = new Stage();
-            stage.setTitle("Crear Nuevo Proyecto de Grado");
-            stage.setScene(scene);
-            stage.setResizable(false);
-            stage.show();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo abrir el formulario de creación de proyecto.");
-        }
+//        try {
+//            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/crear_proyecto.fxml"));
+//            Parent root = loader.load();
+//
+//            CrearProyectoController controller = loader.getController();
+//            controller.setUsuario(usuario);
+//            controller.setUserRepository(userRepository); // Pasar el repositorio
+//
+//            Scene scene = new Scene(root, 600, 700);
+//            Stage stage = new Stage();
+//            stage.setTitle("Crear Nuevo Proyecto de Grado");
+//            stage.setScene(scene);
+//            stage.setResizable(false);
+//            stage.show();
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//            showAlert(Alert.AlertType.ERROR, "Error", "No se pudo abrir el formulario de creación de proyecto.");
+//        }
     }
 
     @FXML

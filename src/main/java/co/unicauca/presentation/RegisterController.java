@@ -10,6 +10,8 @@ import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.UserAlreadyExistsException;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.PasswordField;
@@ -38,7 +40,7 @@ public class RegisterController {
 
     @FXML
     private ComboBox<String> roleComboBox;
-
+    private Stage primaryStage;
     private IUserRepository userRepository;
     private UserService userService;
 
@@ -63,6 +65,9 @@ public class RegisterController {
 
     public void setUserService(UserService userService) {
         this.userService = userService;
+    }
+    public void setPrimaryStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
     }
 
     @FXML
@@ -126,20 +131,50 @@ public class RegisterController {
             String fxmlFile;
             switch (usuario.getRol()) {
                 case "ESTUDIANTE":
-                    fxmlFile = "estudiante";
+                    fxmlFile = "homepageEstudiante";
                     break;
                 case "DOCENTE":
-                    fxmlFile = "docente";
+                    fxmlFile = "homepageDocente";
                     break;
                 case "COORDINADOR":
-                    fxmlFile = "coordinador";
+                    fxmlFile = "homepageCoordinador";
                     break;
                 default:
-                    showAlert(Alert.AlertType.WARNING, "Rol no soportado", "El rol de usuario no está soportado.");
-                    return;
+                    throw new RuntimeException("Rol no soportado: " + usuario.getRol());
             }
 
-            App.setRoot(fxmlFile);
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/fxml/" + fxmlFile + ".fxml"));
+            Parent root = loader.load();
+
+            Object controller = loader.getController();
+
+            if (controller instanceof HomepageDocenteController && usuario instanceof Docente) {
+                HomepageDocenteController docenteController = (HomepageDocenteController) controller;
+                docenteController.setUserService(userService);
+                docenteController.setProyectoGradoService(App.getProyectoGradoService());
+                docenteController.setFilePGService(App.getFilePGService());
+                docenteController.setMensajeInternoService(App.getMensajeInternoService()); // ← INYECCIÓN CLAVE
+                docenteController.setPrimaryStage(primaryStage);
+                docenteController.setUsuario((Docente) usuario);
+
+            } else if (controller instanceof HomepageEstudianteController && usuario instanceof Estudiante) {
+                HomepageEstudianteController estudianteController = (HomepageEstudianteController) controller;
+                estudianteController.setUserService(userService);
+                estudianteController.setProyectoGradoService(App.getProyectoGradoService());
+                estudianteController.setMensajeInternoService(App.getMensajeInternoService()); // ← INYECCIÓN CLAVE
+                estudianteController.setPrimaryStage(primaryStage);
+                estudianteController.setUsuario((Estudiante) usuario);
+
+            } else if (controller instanceof HomepageCoordinadorController && usuario instanceof Coordinador) {
+                HomepageCoordinadorController coordinadorController = (HomepageCoordinadorController) controller;
+                coordinadorController.setUserService(userService);
+                coordinadorController.setFilePGService(App.getFilePGService());
+                coordinadorController.setProyectoGradoService(App.getProyectoGradoService());
+                coordinadorController.setPrimaryStage(primaryStage);
+                coordinadorController.setUsuario((Coordinador) usuario);
+            }
+
+            primaryStage.getScene().setRoot(root);
 
         } catch (Exception e) {
             e.printStackTrace();

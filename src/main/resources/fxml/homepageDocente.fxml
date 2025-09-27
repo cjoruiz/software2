@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="co.unicauca.presentation.HomepageDocenteController">
+
+    <!-- Header -->
+    <top>
+        <VBox>
+            <HBox style="-fx-background-color: #2E0870; -fx-padding: 15;">
+                <Label text="Bienvenido Docente"
+                       style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;" />
+                <Pane HBox.hgrow="ALWAYS"/>
+                <VBox alignment="CENTER_RIGHT">
+                    <Label fx:id="profNameLabel" text="Nombre Docente" style="-fx-text-fill: white;" />
+                    <Label fx:id="profEmailLabel" text="email@unicauca.edu.co" style="-fx-text-fill: white;" />
+                    <Label fx:id="progTextLabel" text="Programa" style="-fx-text-fill: white;" />
+                </VBox>
+            </HBox>
+
+            <Label fx:id="tituloVista" text="Mensajes Recibidos"
+                   style="-fx-font-size: 24; -fx-font-weight: bold; -fx-padding: 15 0 10 20;" />
+        </VBox>
+    </top>
+
+    <!-- Menú izquierdo -->
+    <left>
+        <VBox spacing="15" style="-fx-padding: 20;" alignment="TOP_CENTER">
+            <Button text="Crear Proyecto" onAction="#handleCrearProyecto" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Button text="Mis Proyectos" onAction="#handleVerProyectosDocente" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Button text="Recibidos" onAction="#handleVerRecibidos" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Button text="Archivos Enviados" onAction="#handleVerArchivosEnviados" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Pane VBox.vgrow="ALWAYS"/>
+            <Button text="Log out" onAction="#handleCerrarSesion" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+        </VBox>
+    </left>
+
+    <!-- Contenido central - Usar StackPane para múltiples vistas -->
+    <center>
+        <StackPane style="-fx-padding: 20;">
+            <!-- Vista por defecto: Mensajes Recibidos -->
+            <VBox fx:id="vistaRecibidos" spacing="10" visible="true">
+                <Label text="Mensajes Recibidos Recientes" style="-fx-font-weight: bold; -fx-font-size: 16;" />
+                <ListView fx:id="listaMensajesDocente" prefHeight="400" />
+            </VBox>
+
+            <!-- Proyectos del Docente (incluye opción de subir nueva versión) -->
+            <VBox fx:id="vistaProyectosDocente" spacing="10" visible="false">
+                <Label text="Mis Proyectos de Grado" style="-fx-font-weight: bold; -fx-font-size: 16;" />
+                <TableView fx:id="tablaProyectosDocente" prefHeight="300">
+                    <columns>
+                        <TableColumn text="ID" fx:id="colIdDoc" prefWidth="50"/>
+                        <TableColumn text="Título" fx:id="colTituloDoc" prefWidth="200"/>
+                        <TableColumn text="Estudiante" fx:id="colEstudianteDoc" prefWidth="150"/>
+                        <TableColumn text="Estado" fx:id="colEstadoDoc" prefWidth="150"/>
+                        <TableColumn text="Intento" fx:id="colIntentoDoc" prefWidth="80"/>
+                        <TableColumn text="Acciones" fx:id="colAccionesDoc" prefWidth="120"/>
+                    </columns>
+                </TableView>
+
+                <!-- Formulario para subir nueva versión (aparece al seleccionar un proyecto rechazado) -->
+                <VBox fx:id="vistaSubirNuevaVersion" spacing="10" visible="false" style="-fx-padding: 15; -fx-border-color: #ccc; -fx-border-radius: 5;">
+                    <Label text="Subir Nueva Versión del Formato A" style="-fx-font-weight: bold;" />
+                    <HBox spacing="10">
+                        <Button text="Seleccionar PDF" onAction="#handleSeleccionarNuevoPDF" />
+                        <Label fx:id="lblNuevoArchivo" text="Ningún archivo seleccionado" />
+                    </HBox>
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button text="Subir" onAction="#handleSubirNuevaVersion" style="-fx-background-color: #00cc99; -fx-text-fill: white;" />
+                        <Button text="Cancelar" onAction="#handleCancelarSubir" style="-fx-background-color: #882e93; -fx-text-fill: white;" />
+                    </HBox>
+                </VBox>
+            </VBox>
+
+            <!-- Archivos Enviados -->
+            <VBox fx:id="vistaArchivosEnviados" spacing="10" visible="false">
+                <Label text="Archivos Enviados" style="-fx-font-weight: bold; -fx-font-size: 16;" />
+                <ListView fx:id="listaArchivosEnviados" prefHeight="400" />
+            </VBox>
+            
+            <!-- Detalles del mensaje -->
+            <VBox fx:id="vistaDetallesMensaje" spacing="15" style="-fx-padding: 20;" visible="false">
+                <Label fx:id="lblAsuntoMensaje" text="Asunto: " style="-fx-font-weight: bold; -fx-font-size: 16;" />
+                <Label fx:id="lblRemitenteMensaje" text="De: " />
+                <Label fx:id="lblFechaMensaje" text="Fecha: " />
+    
+                <Separator />
+    
+                <Label text="Cuerpo del mensaje:" style="-fx-font-weight: bold;" />
+                <TextArea fx:id="txtCuerpoMensaje" prefHeight="150" wrapText="true" editable="false" />
+    
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnDescargarArchivo" text="Descargar Archivo" onAction="#handleDescargarArchivoAdjunto" 
+                            style="-fx-background-color: #00cc99; -fx-text-fill: white;" visible="false" />
+                    <Button text="Volver" onAction="#handleVolverDeDetalles" style="-fx-background-color: #882e93; -fx-text-fill: white;" />
+                </HBox>
+            </VBox>
+            
+            <!-- Detalles del proyecto - ENVUELTO EN SCROLLPANE -->
+            <ScrollPane fx:id="scrollPaneDetallesProyecto" visible="false" fitToWidth="true" hbarPolicy="NEVER">
+                <VBox fx:id="vistaDetallesProyecto" spacing="15" style="-fx-padding: 20;">
+                    <Label fx:id="lblTituloProyecto" text="Título: " style="-fx-font-weight: bold; -fx-font-size: 18;" />
+        
+                    <GridPane hgap="10" vgap="8">
+                        <Label text="Modalidad:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblModalidadProyecto" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+            
+                        <Label text="Director:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblDirectorProyecto" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+            
+                        <Label text="Codirector:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblCodirectorProyecto" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+            
+                        <Label text="Estudiante 1:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblEstudiante1Proyecto" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            
+                        <Label text="Estudiante 2:" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblEstudiante2Proyecto" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+            
+                        <Label text="Estado Actual:" GridPane.rowIndex="5" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblEstadoProyecto" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+            
+                        <Label text="Intento:" GridPane.rowIndex="6" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblIntentoProyecto" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+            
+                        <Label text="Fecha Creación:" GridPane.rowIndex="7" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                        <Label fx:id="lblFechaCreacionProyecto" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                    </GridPane>
+        
+                    <Separator />
+        
+                    <Label text="Objetivo General:" style="-fx-font-weight: bold;" />
+                    <TextArea fx:id="txtObjetivoGeneralProyecto" prefHeight="80" wrapText="true" editable="false" />
+        
+                    <Label text="Objetivos Específicos:" style="-fx-font-weight: bold;" />
+                    <TextArea fx:id="txtObjetivosEspecificosProyecto" prefHeight="100" wrapText="true" editable="false" />
+        
+                    <Separator />
+        
+                    <Label text="Observaciones de Evaluación:" style="-fx-font-weight: bold;" />
+                    <TextArea fx:id="txtObservacionesEvaluacion" prefHeight="60" wrapText="true" editable="false" />
+        
+                    <!-- Botones de acción -->
+                    <HBox spacing="10" alignment="CENTER_RIGHT">
+                        <Button fx:id="btnSubirNuevaVersionProyecto" text="Subir Nueva Versión" onAction="#handleSubirNuevaVersionDesdeDetalles" 
+                                style="-fx-background-color: #00cc99; -fx-text-fill: white;" visible="false" />
+                        <Button text="Volver" onAction="#handleVolverDeDetallesProyecto" style="-fx-background-color: #882e93; -fx-text-fill: white;" />
+                    </HBox>
+                </VBox>
+            </ScrollPane>
+        </StackPane>
+    </center>
+
+    <!-- Footer -->
+    <bottom>
+        <VBox>
+            <HBox style="-fx-background-color: #2E0870; -fx-padding: 15;" alignment="CENTER">
+                <Label text="Universidad del Cauca"
+                       style="-fx-text-fill: white; -fx-font-size: 16; -fx-font-weight: bold;" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

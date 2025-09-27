@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="co.unicauca.presentation.HomepageCoordinadorController">
+
+    <!-- Header -->
+    <top>
+        <VBox>
+            <HBox style="-fx-background-color: #2E0870; -fx-padding: 15;">
+                <Label text="Bienvenido Coordinador"
+                       style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;" />
+                <Pane HBox.hgrow="ALWAYS"/>
+                <VBox alignment="CENTER_RIGHT">
+                    <Label fx:id="nombreLabel" text="Nombre Coordinador" style="-fx-text-fill: white;" />
+                    <Label fx:id="programaLabel" text="Programa" style="-fx-text-fill: white;" />
+                    <Label fx:id="celularLabel" text="Celular" style="-fx-text-fill: white;" />
+                </VBox>
+            </HBox>
+
+            <Label fx:id="tituloVista" text="Proyectos Pendientes de Evaluación"
+                   style="-fx-font-size: 24; -fx-font-weight: bold; -fx-padding: 15 0 10 20;" />
+        </VBox>
+    </top>
+
+    <!-- Menú izquierdo -->
+    <left>
+        <VBox spacing="15" style="-fx-padding: 20;" alignment="TOP_CENTER">
+            <Button text="Proyectos Pendientes" onAction="#handleVerProyectosPendientes" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Button text="Todos los Proyectos" onAction="#handleVerTodosProyectos" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Button text="Estadísticas" onAction="#handleVerEstadisticas" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+            <Pane VBox.vgrow="ALWAYS"/>
+            <Button text="Log out" onAction="#handleCerrarSesion" style="-fx-background-color: #a31616; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 15;" />
+        </VBox>
+    </left>
+
+    <!-- Contenido central - Proyectos Pendientes (por defecto) -->
+    <center>
+        <StackPane style="-fx-padding: 20;">
+            <!-- Vista por defecto: Proyectos Pendientes -->
+            <VBox fx:id="vistaProyectosPendientes" spacing="10" visible="true">
+                <Label text="Proyectos Pendientes de Evaluación" style="-fx-font-size: 24; -fx-font-weight: bold; -fx-padding: 15 0 10 20;" />
+            
+                <TableView fx:id="tablaProyectos" prefHeight="400">
+                    <columns>
+                        <TableColumn text="ID" fx:id="colId" prefWidth="50"/>
+                        <TableColumn text="Título" fx:id="colTitulo" prefWidth="200"/>
+                        <TableColumn text="Estudiante" fx:id="colEstudiante" prefWidth="150"/>
+                        <TableColumn text="Director" fx:id="colDirector" prefWidth="150"/>
+                        <TableColumn text="Estado" fx:id="colEstado" prefWidth="120"/>
+                        <TableColumn text="Intento" fx:id="colIntento" prefWidth="80"/>
+                        <TableColumn text="Acciones" fx:id="colAcciones" prefWidth="100"/>
+                    </columns>
+                </TableView>
+            </VBox>
+
+            <!-- Formulario de evaluación -->
+            <VBox fx:id="vistaEvaluarProyecto" spacing="15" style="-fx-padding: 20;" visible="false">
+                <Label text="Evaluar Formato A" style="-fx-font-size: 24; -fx-font-weight: bold;" />
+
+                <GridPane hgap="10" vgap="10">
+                    <Label text="Título:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblTitulo" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        
+                    <Label text="Estudiante:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblEstudiante" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        
+                    <Label text="Director:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblDirector" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        
+                    <Label text="Estado Actual:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblEstado" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        
+                    <Label text="Intento:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                    <Label fx:id="lblIntento" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                </GridPane>
+
+                <Separator/>
+
+                <Label text="Evaluación" style="-fx-font-weight: bold; -fx-font-size: 16;" />
+
+                <!-- AGREGAR TOGGLE GROUP AQUÍ -->
+                <HBox spacing="10">
+                    <fx:define>
+                        <ToggleGroup fx:id="grupoEvaluacion" />
+                    </fx:define>
+                    <RadioButton fx:id="radioAprobar" text="Aprobar" toggleGroup="$grupoEvaluacion" />
+                    <RadioButton fx:id="radioRechazar" text="Rechazar" toggleGroup="$grupoEvaluacion" />
+                </HBox>
+
+                <Label text="Observaciones:" />
+                <TextArea fx:id="txtObservaciones" prefHeight="100" wrapText="true" />
+
+                <HBox spacing="10" alignment="CENTER">
+                    <Button text="Evaluar" onAction="#handleEvaluar" style="-fx-background-color: #00cc99; -fx-text-fill: white;" />
+                    <Button text="Cancelar" onAction="#handleCancelarEvaluacion" style="-fx-background-color: #882e93; -fx-text-fill: white;" />
+                </HBox>
+            </VBox>
+            <!-- Detalles del proyecto -->
+            <VBox fx:id="vistaDetallesProyecto" spacing="15" style="-fx-padding: 20;" visible="false">
+                <Label fx:id="lblTituloProyecto" text="Título: " style="-fx-font-weight: bold; -fx-font-size: 18;" />
+    
+                <GridPane hgap="10" vgap="8">
+                    <Label text="Modalidad:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblModalidadProyecto" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        
+                    <Label text="Director:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblDirectorProyecto" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        
+                    <Label text="Codirector:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblCodirectorProyecto" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        
+                    <Label text="Estudiante 1:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblEstudiante1Proyecto" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        
+                    <Label text="Estudiante 2:" GridPane.rowIndex="4" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblEstudiante2Proyecto" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+        
+                    <Label text="Estado Actual:" GridPane.rowIndex="5" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblEstadoProyecto" GridPane.rowIndex="5" GridPane.columnIndex="1"/>
+        
+                    <Label text="Intento:" GridPane.rowIndex="6" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblIntentoProyecto" GridPane.rowIndex="6" GridPane.columnIndex="1"/>
+        
+                    <Label text="Fecha Creación:" GridPane.rowIndex="7" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                    <Label fx:id="lblFechaCreacionProyecto" GridPane.rowIndex="7" GridPane.columnIndex="1"/>
+                </GridPane>
+    
+                <Separator />
+    
+                <Label text="Objetivo General:" style="-fx-font-weight: bold;" />
+                <TextArea fx:id="txtObjetivoGeneralProyecto" prefHeight="80" wrapText="true" editable="false" />
+    
+                <Label text="Objetivos Específicos:" style="-fx-font-weight: bold;" />
+                <TextArea fx:id="txtObjetivosEspecificosProyecto" prefHeight="100" wrapText="true" editable="false" />
+    
+                <Separator />
+    
+                <Label text="Observaciones de Evaluación:" style="-fx-font-weight: bold;" />
+                <TextArea fx:id="txtObservacionesEvaluacion" prefHeight="60" wrapText="true" editable="false" />
+    
+                <HBox spacing="10" alignment="CENTER_RIGHT">
+                    <Button fx:id="btnDescargarFormatoA" text="Descargar Formato A" onAction="#handleDescargarFormatoA" 
+                            style="-fx-background-color: #00cc99; -fx-text-fill: white;" />
+                    <Button fx:id="btnDescargarCarta" text="Descargar Carta Empresa" onAction="#handleDescargarCartaEmpresa" 
+                            style="-fx-background-color: #007acc; -fx-text-fill: white;" visible="false" />
+                    <Button text="Volver" onAction="#handleVolverDeDetallesProyecto" style="-fx-background-color: #882e93; -fx-text-fill: white;" />
+                </HBox>
+            </VBox>
+        </StackPane>
+    </center>
+
+    <!-- Footer -->
+    <bottom>
+        <VBox>
+            <HBox style="-fx-background-color: #2E0870; -fx-padding: 15;" alignment="CENTER">
+                <Label text="Universidad del Cauca"
+                       style="-fx-text-fill: white; -fx-font-size: 16; -fx-font-weight: bold;" />
+            </HBox>
+        </VBox>
+    </bottom>
+
+</BorderPane>

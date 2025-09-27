@@ -1,6 +1,5 @@
 package co.unicauca.presentation;
 
-import co.unicauca.solid.access.IUserRepository;
 import co.unicauca.solid.domain.Docente;
 import co.unicauca.solid.domain.ProyectoGrado;
 import co.unicauca.solid.domain.Usuario;
@@ -17,74 +16,80 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-
 import java.io.File;
 import java.nio.file.Files;
-import java.time.LocalDateTime;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 
 public class CrearProyectoController {
 
     @FXML
     private TextField txtTituloP;
-
     @FXML
     private ComboBox<String> combModalidad;
-
     @FXML
     private TextField txtDirector;
-
     @FXML
     private TextField txtCoodirector;
-
     @FXML
     private TextField txtEstudiante;
-
     @FXML
     private TextArea txtObjGeneral;
-
     @FXML
     private TextArea txtObjEspecifico;
-
     @FXML
     private Label txtSelectPdf;
+    @FXML
+    private TextField txtEstudiante1;
+    @FXML
+    private TextField txtEstudiante2;
+    @FXML
+    private HBox hboxEstudiante2;
+    @FXML
+    private HBox hboxCartaAceptacion;
+    @FXML
+    private Label txtSelectCarta;
 
     private Usuario usuario;
-    private IUserRepository userRepository;
     private UserService userService;
-    private ProyectoGradoService proyectoService;
+    private ProyectoGradoService proyectoGradoService; // ← Nombre corregido
     private FilePGService filePGService;
     private byte[] contenidoPDFSeleccionado;
     private String nombreArchivoPDF;
+    private byte[] contenidoCartaAceptacion;
+    private String nombreArchivoCarta;
 
     @FXML
     public void initialize() {
         combModalidad.getItems().addAll("INVESTIGACION", "PRACTICA_PROFESIONAL");
         combModalidad.setValue("INVESTIGACION");
         txtSelectPdf.setText("Ningún archivo seleccionado");
+        txtSelectCarta.setText("Ningún archivo seleccionado");
+
+        // Inicializar visibilidad
+        hboxEstudiante2.setVisible(true);
+        hboxCartaAceptacion.setVisible(false);
     }
-    
+
     public void setUsuario(Usuario usuario) {
         this.usuario = usuario;
-        // Si el usuario es docente, pre-llenar su email como director
         if (usuario instanceof Docente) {
             txtDirector.setText(usuario.getEmail());
-            txtDirector.setDisable(true); // No se puede modificar
+            txtDirector.setDisable(true);
         }
     }
 
-    public void setUserRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
-        // Inicializar servicios cuando se establece el repositorio
-        this.userService = new UserService(userRepository);
-        this.proyectoService = new ProyectoGradoService(
-            new co.unicauca.solid.access.ProyectoGradoRepository(userService),
-            userService
-        );
-        this.filePGService = new FilePGService(
-            new co.unicauca.solid.access.FilePGRepository(),
-            new co.unicauca.solid.access.ProyectoGradoRepository(userService)
-        );
+    // ✅ Solo setters para servicios (sin crearlos internamente)
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void setProyectoGradoService(ProyectoGradoService proyectoGradoService) {
+        this.proyectoGradoService = proyectoGradoService;
+    }
+
+    public void setFilePGService(FilePGService filePGService) {
+        this.filePGService = filePGService;
     }
 
     @FXML
@@ -108,20 +113,33 @@ public class CrearProyectoController {
 
     @FXML
     private void handleEnviar(ActionEvent event) {
+        String modalidad = combModalidad.getValue();
+
+        // Validaciones comunes
         if (contenidoPDFSeleccionado == null) {
-            showAlert(Alert.AlertType.WARNING, "Advertencia", "Debe seleccionar un archivo PDF antes de enviar.");
+            showAlert(Alert.AlertType.WARNING, "Advertencia", "Debe seleccionar el Formato A antes de enviar.");
             return;
         }
 
+        if ("PRACTICA_PROFESIONAL".equals(modalidad)) {
+            if (contenidoCartaAceptacion == null) {
+                showAlert(Alert.AlertType.WARNING, "Advertencia", "Debe adjuntar la carta de aceptación de la empresa para prácticas profesionales.");
+                return;
+            }
+            if (!txtEstudiante2.getText().trim().isEmpty()) {
+                showAlert(Alert.AlertType.WARNING, "Advertencia", "En prácticas profesionales solo se permite un estudiante.");
+                return;
+            }
+        }
+
         try {
-            // Crear proyecto
             ProyectoGrado proyecto = new ProyectoGrado();
             proyecto.setTitulo(txtTituloP.getText());
-            proyecto.setModalidad(combModalidad.getValue());
-            proyecto.setDirector((Docente) usuario); // El docente actual es el director
-            
+            proyecto.setModalidad(modalidad);
+            proyecto.setDirector((Docente) usuario);
+
+            // Codirector (opcional)
             if (!txtCoodirector.getText().trim().isEmpty()) {
-                // Buscar codirector por email
                 var codirector = userService.findByEmail(txtCoodirector.getText().trim());
                 if (codirector instanceof Docente) {
                     proyecto.setCodirector((Docente) codirector);
@@ -129,27 +147,57 @@ public class CrearProyectoController {
                     throw new InvalidUserDataException("El codirector debe ser un docente.");
                 }
             }
-            
-            var estudiante = userService.findByEmail(txtEstudiante.getText().trim());
-            if (estudiante instanceof co.unicauca.solid.domain.Estudiante) {
-                proyecto.setEstudiante1((co.unicauca.solid.domain.Estudiante) estudiante);
-            } else {
-                throw new InvalidUserDataException("El estudiante no es válido.");
+
+            // Estudiante 1 (obligatorio)
+            String emailEstudiante1 = txtEstudiante1.getText().trim();
+            if (emailEstudiante1.isEmpty()) {
+                throw new InvalidUserDataException("El email del estudiante 1 es obligatorio.");
             }
-            
+            var estudiante1 = userService.findByEmail(emailEstudiante1);
+            if (estudiante1 instanceof co.unicauca.solid.domain.Estudiante) {
+                proyecto.setEstudiante1((co.unicauca.solid.domain.Estudiante) estudiante1);
+            } else {
+                throw new InvalidUserDataException("El estudiante 1 no es válido.");
+            }
+
+            // Estudiante 2 (solo para investigación y opcional)
+            if ("INVESTIGACION".equals(modalidad)) {
+                String emailEstudiante2 = txtEstudiante2.getText().trim();
+                if (!emailEstudiante2.isEmpty()) {
+                    var estudiante2 = userService.findByEmail(emailEstudiante2);
+                    if (estudiante2 instanceof co.unicauca.solid.domain.Estudiante) {
+                        proyecto.setEstudiante2((co.unicauca.solid.domain.Estudiante) estudiante2);
+                    } else {
+                        throw new InvalidUserDataException("El estudiante 2 no es válido.");
+                    }
+                }
+                // Si está vacío, no se asigna estudiante2 (es válido)
+            }
+
             proyecto.setObjetivoGeneral(txtObjGeneral.getText());
             proyecto.setObjetivosEspecificos(txtObjEspecifico.getText());
 
-            int idProyecto = proyectoService.crearProyecto(proyecto);
+            // Crear proyecto
+            int idProyecto = proyectoGradoService.crearProyecto(proyecto);
 
-            // Subir el Formato A
-            int idDocumento = filePGService.subirFormatoA(idProyecto, contenidoPDFSeleccionado, nombreArchivoPDF);
+            // Subir Formato A
+            int idDocumentoA = filePGService.subirFormatoA(idProyecto, contenidoPDFSeleccionado, nombreArchivoPDF);
 
-            if (idProyecto > 0 && idDocumento > 0) {
-                showAlert(Alert.AlertType.INFORMATION, "Éxito", "Proyecto creado y Formato A subido correctamente.");
+            // Subir carta de aceptación si es práctica
+            int idDocumentoCarta = -1;
+            if ("PRACTICA_PROFESIONAL".equals(modalidad)) {
+                idDocumentoCarta = filePGService.subirCartaEmpresa(idProyecto, contenidoCartaAceptacion,
+                 "Carta_Aceptacion_" + idProyecto + ".pdf");
+            }
+
+            if (idProyecto > 0 && idDocumentoA > 0
+                    && ("INVESTIGACION".equals(modalidad) || idDocumentoCarta > 0)) {
+
+                showAlert(Alert.AlertType.INFORMATION, "Éxito",
+                        "Proyecto creado y documentos subidos correctamente.");
                 ((Stage) txtTituloP.getScene().getWindow()).close();
             } else {
-                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo crear el proyecto o subir el documento.");
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo crear el proyecto o subir los documentos.");
             }
 
         } catch (InvalidUserDataException | UserNotFoundException e) {
@@ -163,6 +211,43 @@ public class CrearProyectoController {
     @FXML
     private void handleCancelar(ActionEvent event) {
         ((Stage) txtTituloP.getScene().getWindow()).close();
+    }
+
+    @FXML
+    private void handleCambioModalidad() {
+        String modalidad = combModalidad.getValue();
+        if ("PRACTICA_PROFESIONAL".equals(modalidad)) {
+            // Solo 1 estudiante, mostrar carta de aceptación
+            hboxEstudiante2.setVisible(false);
+            hboxCartaAceptacion.setVisible(true);
+            txtEstudiante2.clear(); // Limpiar por si había algo
+        } else {
+            // Investigación: 2 estudiantes, sin carta
+            hboxEstudiante2.setVisible(true);
+            hboxCartaAceptacion.setVisible(false);
+            contenidoCartaAceptacion = null;
+            nombreArchivoCarta = null;
+            txtSelectCarta.setText("Ningún archivo seleccionado");
+        }
+    }
+
+    @FXML
+    private void handleAdjuntarCartaAceptacion(ActionEvent event) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Seleccionar carta de aceptación de la empresa");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+
+        File file = fileChooser.showOpenDialog(null);
+        if (file != null) {
+            try {
+                contenidoCartaAceptacion = Files.readAllBytes(file.toPath());
+                nombreArchivoCarta = file.getName();
+                txtSelectCarta.setText(nombreArchivoCarta);
+            } catch (Exception e) {
+                showAlert(Alert.AlertType.ERROR, "Error", "No se pudo leer el archivo PDF.");
+                e.printStackTrace();
+            }
+        }
     }
 
     private void showAlert(Alert.AlertType alertType, String title, String message) {

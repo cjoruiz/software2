@@ -30,7 +30,7 @@
 
             <HBox alignment="CENTER_LEFT" spacing="10.0">
                 <Label text="Modalidad:" minWidth="150" />
-                <ComboBox fx:id="combModalidad" prefWidth="300.0" />
+                <ComboBox fx:id="combModalidad" prefWidth="300.0" onAction="#handleCambioModalidad" />
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="10.0">
@@ -44,8 +44,14 @@
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <Label text="Estudiante (Email):" minWidth="150" />
-                <TextField fx:id="txtEstudiante" prefWidth="300.0" />
+                <Label text="Estudiante 1 (Email):" minWidth="150" />
+                <TextField fx:id="txtEstudiante1" prefWidth="300.0" />
+            </HBox>
+
+            <!-- Estudiante 2 (solo para investigación) -->
+            <HBox fx:id="hboxEstudiante2" alignment="CENTER_LEFT" spacing="10.0" visible="false">
+                <Label text="Estudiante 2 (Email):" minWidth="150" />
+                <TextField fx:id="txtEstudiante2" prefWidth="300.0" />
             </HBox>
 
             <HBox alignment="CENTER_LEFT" spacing="10.0" VBox.vgrow="ALWAYS">
@@ -58,9 +64,16 @@
                 <TextArea fx:id="txtObjEspecifico" prefHeight="100.0" prefWidth="300.0" wrapText="true" />
             </HBox>
 
+            <!-- Formato A -->
             <HBox alignment="CENTER_LEFT" spacing="10.0">
-                <Button text="Adjuntar Formato A (PDF)" onAction="#handleAdjuntarPDF" styleClass="secondary-button" />
+                <Button text="Adjuntar Formato A (PDF)" onAction="#handleAdjuntarPDF" />
                 <Label fx:id="txtSelectPdf" text="Ningún archivo seleccionado" />
+            </HBox>
+
+            <!-- Carta de aceptación (solo para práctica) -->
+            <HBox fx:id="hboxCartaAceptacion" alignment="CENTER_LEFT" spacing="10.0" visible="false">
+                <Button text="Adjuntar Carta de Aceptación (PDF)" onAction="#handleAdjuntarCartaAceptacion" />
+                <Label fx:id="txtSelectCarta" text="Ningún archivo seleccionado" />
             </HBox>
 
             <HBox alignment="CENTER" spacing="20.0">
