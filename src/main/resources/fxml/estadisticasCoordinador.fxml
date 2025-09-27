@@ -4,85 +4,42 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.geometry.Insets?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="co.unicauca.presentation.HomepageCoordinadorController">
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="co.unicauca.presentation.EstadisticasCoordinadorController">
     <top>
-        <VBox style="-fx-background-color: #2E0870; -fx-padding: 15;">
-            <HBox>
-                <Label fx:id="nombreLabel" text="Nombre" style="-fx-text-fill: white; -fx-font-size: 16;" />
-                <Label fx:id="programaLabel" text="Programa" style="-fx-text-fill: white; -fx-font-size: 14; -fx-padding: 0 0 0 10;" />
+        <VBox>
+            <HBox style="-fx-background-color: #2E0870; -fx-padding: 15;">
+                <Label text="Estadísticas de Proyectos" style="-fx-text-fill: white; -fx-font-size: 18; -fx-font-weight: bold;" />
                 <Pane HBox.hgrow="ALWAYS"/>
-                <Button text="Cerrar Sesión" onAction="#handleCerrarSesion" style="-fx-background-color: white;"/>
             </HBox>
-            <Label fx:id="celularLabel" text="Celular" style="-fx-text-fill: white; -fx-font-size: 12;" />
         </VBox>
     </top>
-
+    
     <center>
-        <StackPane>
-            <!-- Vista: Proyectos Pendientes -->
-            <VBox fx:id="vistaProyectosPendientes" visible="true">
-                <Label fx:id="tituloVista" text="Proyectos Pendientes de Evaluación" style="-fx-font-size: 20; -fx-font-weight: bold; -fx-padding: 10;" />
-                <TableView fx:id="tablaProyectos" prefHeight="500">
-                    <!-- Columnas ya definidas en el controlador -->
-                </TableView>
-                <HBox spacing="10" alignment="CENTER" padding="10">
-                    <Button text="Ver Todos los Proyectos" onAction="#handleVerTodosProyectos" />
-                    <Button text="Ver Estadísticas" onAction="#handleVerEstadisticas" />
-                </HBox>
-            </VBox>
-
-            <!-- Vista: Evaluar Proyecto -->
-            <VBox fx:id="vistaEvaluarProyecto" visible="false" spacing="10" padding="20">
-                <Label text="Evaluar Proyecto" style="-fx-font-size: 20; -fx-font-weight: bold;" />
-                <GridPane hgap="10" vgap="10">
-                    <Label text="Título:" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                    <Label fx:id="lblTitulo" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-                    <Label text="Estudiante:" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                    <Label fx:id="lblEstudiante" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-                    <Label text="Director:" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                    <Label fx:id="lblDirector" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-                    <Label text="Estado:" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                    <Label fx:id="lblEstado" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-                    <Label text="Intento:" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                    <Label fx:id="lblIntento" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
-                </GridPane>
-                <Label text="Observaciones:" />
-                <TextArea fx:id="txtObservaciones" prefRowCount="4" />
-                <HBox spacing="10">
-                    <RadioButton fx:id="radioAprobar" text="Aprobar" />
-                    <RadioButton fx:id="radioRechazar" text="Rechazar" />
-                </HBox>
-                <HBox spacing="10" alignment="CENTER">
-                    <Button text="Evaluar" onAction="#handleEvaluar" style="-fx-background-color: #00cc99; -fx-text-fill: white;" />
-                    <Button text="Cancelar" onAction="#handleCancelarEvaluacion" />
-                </HBox>
-            </VBox>
-
-            <!-- Vista: Detalles del Proyecto -->
-            <VBox fx:id="vistaDetallesProyecto" visible="false" spacing="10" padding="20">
-                <Label text="Detalles del Proyecto" style="-fx-font-size: 20; -fx-font-weight: bold;" />
-                <GridPane hgap="10" vgap="5">
-                    <Label fx:id="lblTituloProyecto" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-                    <Label fx:id="lblModalidadProyecto" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-                    <Label fx:id="lblDirectorProyecto" GridPane.rowIndex="2" GridPane.columnIndex="0" />
-                    <Label fx:id="lblCodirectorProyecto" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-                    <Label fx:id="lblEstudiante1Proyecto" GridPane.rowIndex="4" GridPane.columnIndex="0" />
-                    <Label fx:id="lblEstudiante2Proyecto" GridPane.rowIndex="5" GridPane.columnIndex="0" />
-                    <Label fx:id="lblEstadoProyecto" GridPane.rowIndex="6" GridPane.columnIndex="0" />
-                    <Label fx:id="lblIntentoProyecto" GridPane.rowIndex="7" GridPane.columnIndex="0" />
-                    <Label fx:id="lblFechaCreacionProyecto" GridPane.rowIndex="8" GridPane.columnIndex="0" />
-                </GridPane>
-                <Label text="Objetivo General:" />
-                <TextArea fx:id="txtObjetivoGeneralProyecto" editable="false" prefRowCount="3" />
-                <Label text="Objetivos Específicos:" />
-                <TextArea fx:id="txtObjetivosEspecificosProyecto" editable="false" prefRowCount="4" />
-                <Label text="Observaciones de Evaluación:" />
-                <TextArea fx:id="txtObservacionesEvaluacion" editable="false" prefRowCount="3" />
-                <HBox spacing="10" alignment="CENTER">
-                    <Button text="Volver" onAction="#handleVolverDeDetallesProyecto" />
-                    <Button text="Descargar Formato A" onAction="#handleDescargarFormatoA" />
-                </HBox>
-            </VBox>
-        </StackPane>
+        <VBox spacing="15" style="-fx-padding: 20;">
+            <Label text="Resumen General" style="-fx-font-size: 20; -fx-font-weight: bold;" />
+            
+            <GridPane hgap="20" vgap="10">
+                <Label text="Total de Proyectos:" GridPane.rowIndex="0" GridPane.columnIndex="0" style="-fx-font-weight: bold;"/>
+                <Label fx:id="lblTotalProyectos" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                
+                <Label text="Proyectos Aprobados:" GridPane.rowIndex="1" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: green;"/>
+                <Label fx:id="lblAprobados" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+                
+                <Label text="Proyectos por Aprobar:" GridPane.rowIndex="2" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: orange;"/>
+                <Label fx:id="lblPorAprobar" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                
+                <Label text="Proyectos Rechazados:" GridPane.rowIndex="3" GridPane.columnIndex="0" style="-fx-font-weight: bold; -fx-text-fill: red;"/>
+                <Label fx:id="lblRechazados" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            </GridPane>
+            
+            <Separator />
+            
+            <Label text="Distribución por Estados" style="-fx-font-size: 16; -fx-font-weight: bold;" />
+            <ListView fx:id="listaEstados" prefHeight="200" />
+            
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="Actualizar" onAction="#handleActualizar" style="-fx-background-color: #00cc99; -fx-text-fill: white;" />
+            </HBox>
+        </VBox>
     </center>
 </BorderPane>
