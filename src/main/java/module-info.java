@@ -3,9 +3,7 @@ module co.unicauca {
     requires javafx.fxml;
     requires java.logging;
     requires java.sql;
-    requires java.base;
 
-    opens co.unicauca.presentation to javafx.fxml;
-    opens co.unicauca.solid.domain to javafx.base; 
+    opens co.unicauca.presentation to javafx.fxml; // ← Esta línea
     exports co.unicauca.presentation; // ← Y esta
 }

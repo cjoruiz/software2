@@ -42,31 +42,6 @@ public class FilePG {
         this.extension = extraerExtension(nombreArchivo);
         this.tamaño = contenido != null ? (long) contenido.length : 0L;
     }
-
-    public FilePG(Integer idDocumento, Integer idProyecto, String tipoDocumento, Integer version, byte[] contenido, String nombreArchivo, String extension, Long tamaño, LocalDateTime fechaSubida, String estado, String observaciones) {
-        this.idDocumento = idDocumento;
-        this.idProyecto = idProyecto;
-        this.tipoDocumento = tipoDocumento;
-        this.version = version;
-        this.contenido = contenido;
-        this.nombreArchivo = nombreArchivo;
-        this.extension = extension;
-        this.tamaño = tamaño;
-        this.fechaSubida = fechaSubida;
-        this.estado = estado;
-        this.observaciones = observaciones;
-    }
-
-    public FilePG(Integer idProyecto, String tipoDocumento, Integer version, String nombreArchivo) {
-    this(); // ✅ Llamar al constructor por defecto para inicializar fechaSubida, estado, etc.
-    this.idProyecto = idProyecto;
-    this.tipoDocumento = tipoDocumento;
-    this.version = version;
-    this.nombreArchivo = nombreArchivo;
-    this.extension = extraerExtension(nombreArchivo);
-}
-
-
     
     // Getters y Setters
     public Integer getIdDocumento() {

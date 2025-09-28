@@ -1,3 +1,4 @@
+// Archivo: co.unicauca.solid.service.FilePGService.java
 package co.unicauca.solid.service;
 
 import co.unicauca.solid.access.IFilePGRepository;
@@ -12,15 +13,16 @@ import java.util.Arrays;
 public class FilePGService {
     
     private final IFilePGRepository filePGRepository;
-    private final IProyectoGradoRepository proyectoGradoRepository; 
+    private final IProyectoGradoRepository proyectoGradoRepository; // <-- CAMBIO: Ahora depende del repositorio, no del servicio
     
-    private static final String[] EXTENSIONES_PDF = {"pdf"};
-    private static final String[] EXTENSIONES_DOCUMENTOS = {"pdf", "doc", "docx"}; 
-    private static final String[] EXTENSIONES_PRESENTACION = {"pdf", "ppt", "pptx"}; 
+    // Extensiones permitidas por tipo de documento (¡SIN el punto!)
+    private static final String[] EXTENSIONES_PDF = {"pdf"}; // <-- ¡CORREGIDO!
+    private static final String[] EXTENSIONES_DOCUMENTOS = {"pdf", "doc", "docx"}; // <-- ¡CORREGIDO!
+    private static final String[] EXTENSIONES_PRESENTACION = {"pdf", "ppt", "pptx"}; // <-- ¡CORREGIDO!
     
     private static final long TAMAÑO_MAXIMO = 20 * 1024 * 1024;
 
-    public FilePGService(IFilePGRepository filePGRepository, IProyectoGradoRepository proyectoGradoRepository) { 
+    public FilePGService(IFilePGRepository filePGRepository, IProyectoGradoRepository proyectoGradoRepository) { // <-- CAMBIO: Constructor modificado
         this.filePGRepository = filePGRepository;
         this.proyectoGradoRepository = proyectoGradoRepository;
     }
@@ -52,7 +54,7 @@ public class FilePGService {
     public List<FilePG> obtenerDocumentosPorProyecto(Integer idProyecto) 
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         List<FilePG> documentos = filePGRepository.obtenerDocumentosPorProyecto(idProyecto);
         if (documentos.isEmpty()) {
             throw new UserNotFoundException("No se encontraron documentos para el proyecto " + idProyecto);
@@ -64,7 +66,7 @@ public class FilePGService {
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
         validarTipoDocumento(tipoDocumento);
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         return filePGRepository.obtenerDocumentosPorProyectoYTipo(idProyecto, tipoDocumento);
     }
 
@@ -88,34 +90,25 @@ public class FilePGService {
         return filePGRepository.guardarEnDisco(id, ruta, nombreArchivo);
     }
 
-  public int subirFormatoA(Integer idProyecto, byte[] contenido, String nombreArchivo) 
-        throws InvalidUserDataException, UserNotFoundException {
-    ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-    ValidationUtil.validarNoNulo(contenido, "contenido del archivo");
-    ValidationUtil.validarNoVacio(nombreArchivo, "nombre del archivo");
-    verificarProyectoExiste(idProyecto);
-    
-    if (!validarExtension(nombreArchivo, EXTENSIONES_PDF)) {
-        throw new InvalidUserDataException("El Formato A solo puede ser un archivo PDF");
+    public int subirFormatoA(Integer idProyecto, byte[] contenido, String nombreArchivo) 
+            throws InvalidUserDataException, UserNotFoundException {
+        ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
+        ValidationUtil.validarNoNulo(contenido, "contenido del archivo");
+        ValidationUtil.validarNoVacio(nombreArchivo, "nombre del archivo");
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
+        if (!validarExtension(nombreArchivo, EXTENSIONES_PDF)) {
+            throw new InvalidUserDataException("El Formato A solo puede ser un archivo PDF");
+        }
+        if (contenido.length > TAMAÑO_MAXIMO) {
+            throw new InvalidUserDataException("El archivo excede el tamaño máximo permitido (20MB)");
+        }
+        return filePGRepository.subirFormatoA(idProyecto, contenido, nombreArchivo);
     }
-    if (contenido.length > TAMAÑO_MAXIMO) {
-        throw new InvalidUserDataException("El archivo excede el tamaño máximo permitido (20MB)");
-    }
-    
-    //  Obtener el número de intento actual del proyecto
-    co.unicauca.solid.domain.ProyectoGrado proyecto = proyectoGradoRepository.obtenerProyectoPorId(idProyecto);
-    int version = proyecto.getNumeroIntento();
-    
-    //  Crear FilePG con la versión correcta usando el constructor adecuado
-    FilePG documento = new FilePG(idProyecto, "FORMATO_A", version, nombreArchivo);
-    documento.setContenido(contenido); // Esto también establece el tamaño
-    
-    return filePGRepository.insertarDocumento(documento);
-}
+
     public FilePG obtenerFormatoAActual(Integer idProyecto) 
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        verificarProyectoExiste(idProyecto);
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         FilePG formatoA = filePGRepository.obtenerFormatoAActual(idProyecto);
         if (formatoA == null) {
             throw new UserNotFoundException("No se encontró Formato A para el proyecto " + idProyecto);
@@ -126,7 +119,7 @@ public class FilePGService {
     public List<FilePG> obtenerHistorialFormatoA(Integer idProyecto) 
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        verificarProyectoExiste(idProyecto);
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         List<FilePG> historial = filePGRepository.obtenerHistorialFormatoA(idProyecto);
         if (historial.isEmpty()) {
             throw new UserNotFoundException("No se encontró historial de Formato A para el proyecto " + idProyecto);
@@ -139,7 +132,7 @@ public class FilePGService {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
         ValidationUtil.validarNoNulo(contenido, "contenido del archivo");
         ValidationUtil.validarNoVacio(nombreArchivo, "nombre del archivo");
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         if (!validarExtension(nombreArchivo, EXTENSIONES_DOCUMENTOS)) {
             throw new InvalidUserDataException("La carta de empresa debe ser PDF, DOC o DOCX");
         }
@@ -152,7 +145,7 @@ public class FilePGService {
     public FilePG obtenerCartaEmpresa(Integer idProyecto) 
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         FilePG carta = filePGRepository.obtenerCartaEmpresa(idProyecto);
         if (carta == null) {
             throw new UserNotFoundException("No se encontró carta de empresa para el proyecto " + idProyecto);
@@ -163,7 +156,7 @@ public class FilePGService {
     public boolean tieneCartaEmpresa(Integer idProyecto) 
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         return filePGRepository.tieneCartaEmpresa(idProyecto);
     }
 
@@ -171,7 +164,7 @@ public class FilePGService {
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
         ValidationUtil.validarNoVacio(modalidad, "modalidad");
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         boolean esPracticaProfesional = "PRACTICA_PROFESIONAL".equals(modalidad);
         return filePGRepository.validarDocumentosRequeridos(idProyecto, esPracticaProfesional);
     }
@@ -179,7 +172,7 @@ public class FilePGService {
     public String obtenerEstadisticasProyecto(Integer idProyecto) 
             throws InvalidUserDataException, UserNotFoundException {
         ValidationUtil.validarPositivo(idProyecto, "ID del proyecto");
-        verificarProyectoExiste(idProyecto); 
+        verificarProyectoExiste(idProyecto); // <-- USANDO EL NUEVO MÉTODO PRIVADO
         return filePGRepository.obtenerEstadisticasProyecto(idProyecto);
     }
 
@@ -251,6 +244,6 @@ public class FilePGService {
 
     private String obtenerExtension(String nombreArchivo) {
         int ultimoPunto = nombreArchivo.lastIndexOf('.');
-        return (ultimoPunto > 0) ? nombreArchivo.substring(ultimoPunto + 1) : ""; 
+        return (ultimoPunto > 0) ? nombreArchivo.substring(ultimoPunto + 1) : ""; // <-- Devuelve sin el punto
     }
 }

@@ -8,6 +8,8 @@ package co.unicauca.solid.access;
  *
  * @author crist
  */
+
+
 import co.unicauca.solid.domain.MensajeInterno;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -22,7 +24,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 public class MensajeInternoRepository implements IMensajeInternoRepository {
-
     private static final Logger LOGGER = Logger.getLogger(MensajeInternoRepository.class.getName());
 
     public MensajeInternoRepository() {
@@ -68,7 +69,8 @@ public class MensajeInternoRepository implements IMensajeInternoRepository {
 
     @Override
     public List<MensajeInterno> obtenerMensajesPorDestinatario(String destinatarioEmail) {
-        String sql = "SELECT * FROM mensajes_internos WHERE ',' || REPLACE(destinatarios_email, ' ', '') || ',' LIKE ?";
+        String sql = "SELECT * FROM mensajes_internos WHERE ',' || destinatarios_email || ',' LIKE ? ORDER BY fecha_envio DESC";
+        // Busca si el email está en la lista (maneja listas separadas por comas)
         return ejecutarConsultaLista(sql, "%," + destinatarioEmail + ",%");
     }
 
@@ -146,18 +148,18 @@ public class MensajeInternoRepository implements IMensajeInternoRepository {
     }
 
     private void initDatabase() {
-        String sql = "CREATE TABLE IF NOT EXISTS mensajes_internos ("
-                + "id_mensaje INTEGER PRIMARY KEY AUTOINCREMENT, "
-                + "remitente_email TEXT NOT NULL, "
-                + "destinatarios_email TEXT NOT NULL, "
-                + "asunto TEXT NOT NULL, "
-                + "cuerpo TEXT NOT NULL, "
-                + "documento_adjunto BLOB, "
-                + "nombre_archivo TEXT, "
-                + "fecha_envio TEXT NOT NULL, "
-                + "estado TEXT DEFAULT 'ENVIADO' CHECK (estado IN ('ENVIADO', 'LEIDO', 'RESPONDIDO')), "
-                + "FOREIGN KEY (remitente_email) REFERENCES user(email) "
-                + ");";
+        String sql = "CREATE TABLE IF NOT EXISTS mensajes_internos (" +
+                "id_mensaje INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "remitente_email TEXT NOT NULL, " +
+                "destinatarios_email TEXT NOT NULL, " +
+                "asunto TEXT NOT NULL, " +
+                "cuerpo TEXT NOT NULL, " +
+                "documento_adjunto BLOB, " +
+                "nombre_archivo TEXT, " +
+                "fecha_envio TEXT NOT NULL, " +
+                "estado TEXT DEFAULT 'ENVIADO' CHECK (estado IN ('ENVIADO', 'LEIDO', 'RESPONDIDO')), " +
+                "FOREIGN KEY (remitente_email) REFERENCES user(email) " +
+                ");";
 
         try (Connection connection = getConnection(); Statement stmt = connection.createStatement()) {
             stmt.execute(sql);

@@ -2,9 +2,7 @@
 package co.unicauca.solid.service;
 
 import co.unicauca.solid.access.IUserRepository;
-import co.unicauca.solid.domain.Coordinador;
 import co.unicauca.solid.domain.Usuario;
-import co.unicauca.utilities.exeption.CoordinadorYaExisteException;
 import co.unicauca.utilities.exeption.InvalidUserDataException;
 import co.unicauca.utilities.exeption.LoginException;
 import co.unicauca.utilities.exeption.UserAlreadyExistsException;
@@ -21,7 +19,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public void registerUser(Usuario user) throws UserAlreadyExistsException, InvalidUserDataException, CoordinadorYaExisteException {
+    public void registerUser(Usuario user) throws UserAlreadyExistsException, InvalidUserDataException {
         validateUser(user);
 
         Usuario existingUser = userRepository.findByEmail(user.getEmail());
@@ -29,17 +27,11 @@ public class UserService {
             throw new UserAlreadyExistsException("El usuario con email " + user.getEmail() + " ya existe");
         }
 
-        // Aplicar regla de negocio para Coordinadores
-        if (user instanceof Coordinador) {
-            validarReglasCoordinador((Coordinador) user);
-        }
-
         boolean saved = userRepository.save(user);
         if (!saved) {
             throw new RuntimeException("Error al guardar el usuario en la base de datos");
         }
     }
-
 
     public Usuario login(String email, String password) throws LoginException, InvalidUserDataException {
         ValidationUtil.validarEmail(email, "email");
@@ -77,7 +69,7 @@ public class UserService {
         return userRepository.list();
     }
 
-    public void updateUser(Usuario user) throws UserNotFoundException, InvalidUserDataException, CoordinadorYaExisteException {
+    public void updateUser(Usuario user) throws UserNotFoundException, InvalidUserDataException {
         validateUser(user);
 
         Usuario existingUser = userRepository.findByEmail(user.getEmail());
@@ -85,16 +77,12 @@ public class UserService {
             throw new UserNotFoundException(user.getEmail());
         }
 
-        // Aplicar regla de negocio para Coordinadores
-        if (user instanceof Coordinador) {
-            validarReglasCoordinador((Coordinador) user);
-        }
-
-        boolean updated = userRepository.update(user);
+        boolean updated = userRepository.update(user); // <-- ¡USANDO EL NUEVO MÉTODO!
         if (!updated) {
             throw new RuntimeException("Error al actualizar el usuario");
         }
     }
+
     private void validateUser(Usuario user) throws InvalidUserDataException {
         ValidationUtil.validarNoNulo(user, "usuario");
         ValidationUtil.validarEmail(user.getEmail(), "email");
@@ -112,19 +100,4 @@ public class UserService {
         ValidationUtil.validarLongitud(user.getPrograma(), "programa", 2, 100);
         ValidationUtil.validarLongitud(user.getRol(), "rol", 2, 20);
     }
-    private void validarReglasCoordinador(Coordinador coordinador) throws CoordinadorYaExisteException, InvalidUserDataException {
-        // Verificar que no exista otro coordinador para el mismo programa
-        List<Usuario> coordinadoresDelPrograma = userRepository.findByRole("COORDINADOR");
-        for (Usuario usuario : coordinadoresDelPrograma) {
-            if (usuario instanceof Coordinador) {
-                Coordinador coordExistente = (Coordinador) usuario;
-                // Si es un coordinador diferente (por email) pero del mismo programa, es un error.
-                if (!coordExistente.getEmail().equals(coordinador.getEmail())
-                        && coordExistente.getPrograma().equals(coordinador.getPrograma())) {
-                    throw new CoordinadorYaExisteException(coordinador.getPrograma());
-                }
-            }
-        }
-    }
-
 }
